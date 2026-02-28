@@ -6,29 +6,33 @@ Vanilla JS web component library for date pickers, time pickers, booking calenda
 
 ## Install
 
-### CDN (UMD)
+### CDN (`<script>` tag)
 
 ```html
-<script src="https://unpkg.com/calkit/dist/calkit.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/SimonKefas/calkit/dist/calkit.umd.js"></script>
 ```
 
-### ES Module
+All four components are registered automatically. No imports needed.
+
+### Bundler (Vite, Webpack, etc.)
 
 ```js
 import { CalDatepicker, CalBooking, CalTimepicker, CalScheduler } from 'calkit';
 ```
 
+Uses the ES module builds from `node_modules`.
+
 ### Individual Bundles
 
-Load only what you need:
+Load only the components you need:
 
-| Bundle | ES Module | UMD | Gzipped |
-|--------|-----------|-----|---------|
-| **Full** (all 4 components) | `calkit.es.js` (176 KB) | `calkit.umd.js` (148 KB) | ~34 KB |
-| **Datepicker** only | `datepicker.es.js` (56 KB) | `datepicker.umd.js` (48 KB) | ~12 KB |
-| **Timepicker** only | `timepicker.es.js` (36 KB) | `timepicker.umd.js` (32 KB) | ~8 KB |
-| **Booking** only | `booking.es.js` (64 KB) | `booking.umd.js` (56 KB) | ~14 KB |
-| **Scheduler** only | `scheduler.es.js` (104 KB) | `scheduler.umd.js` (88 KB) | ~21 KB |
+| Bundle | CDN (`<script>`) | ES Module (bundler) | Gzipped |
+|--------|------------------|---------------------|---------|
+| **Full** (all 4) | `calkit.umd.js` (148 KB) | `calkit.es.js` (176 KB) | ~34 KB |
+| **Datepicker** only | `datepicker.umd.js` (48 KB) | `datepicker.es.js` (56 KB) | ~12 KB |
+| **Timepicker** only | `timepicker.umd.js` (32 KB) | `timepicker.es.js` (36 KB) | ~8 KB |
+| **Booking** only | `booking.umd.js` (56 KB) | `booking.es.js` (64 KB) | ~14 KB |
+| **Scheduler** only | `scheduler.umd.js` (88 KB) | `scheduler.es.js` (104 KB) | ~21 KB |
 
 ---
 
