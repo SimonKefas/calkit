@@ -5,7 +5,7 @@
 Package: calkit
 Version: 0.1.0
 Tags: <cal-datepicker>, <cal-timepicker>, <cal-booking>, <cal-scheduler>
-Install (CDN script tag): <script src="https://cdn.jsdelivr.net/gh/SimonKefas/calkit/dist/calkit.umd.js"></script>
+Install (CDN script tag): <script src="https://cdn.jsdelivr.net/npm/calkit/dist/calkit.umd.js"></script>
 Install (Bundler ESM): import { CalDatepicker, CalBooking, CalTimepicker, CalScheduler } from 'calkit';
 
 All date strings use "YYYY-MM-DD" format.

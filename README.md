@@ -9,7 +9,7 @@ Vanilla JS web component library for date pickers, time pickers, booking calenda
 ### CDN (`<script>` tag)
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/SimonKefas/calkit/dist/calkit.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/calkit/dist/calkit.umd.js"></script>
 ```
 
 All four components are registered automatically. No imports needed.
