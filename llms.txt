@@ -1,0 +1,594 @@
+# CalKit
+
+> Vanilla JS web component library for date pickers, time pickers, booking calendars, and resource schedulers.
+
+Package: calkit
+Version: 0.1.0
+Tags: <cal-datepicker>, <cal-timepicker>, <cal-booking>, <cal-scheduler>
+Install (CDN): <script src="https://unpkg.com/calkit/dist/calkit.umd.js"></script>
+Install (ESM): import { CalDatepicker, CalBooking, CalTimepicker, CalScheduler } from 'calkit';
+
+All date strings use "YYYY-MM-DD" format.
+All time strings use "HH:MM" 24h format.
+All color tokens use raw HSL channels consumed as hsl(var(--cal-...)).
+All events are CustomEvents with { bubbles: true, composed: true }.
+
+---
+
+## Component: cal-datepicker
+
+Tag: <cal-datepicker>
+Class: CalDatepicker
+Extends: CalendarBase → HTMLElement
+
+### Attributes (observedAttributes)
+
+- mode: "single" | "multi" | "range" (default: "single")
+- display: "inline" | "popover" (default: "inline")
+- theme: "light" | "dark" | "auto" (default: "light")
+- value: string (single: "2026-03-15", range: "2026-03-10/2026-03-15", multi: "2026-03-10,2026-03-12")
+- min-date: string | null (default: null) — "YYYY-MM-DD" earliest selectable date
+- max-date: string | null (default: null) — "YYYY-MM-DD" latest selectable date
+- disabled-dates: string | null (default: null) — comma-separated "YYYY-MM-DD" list
+- first-day: number (default: 0) — 0=Sunday, 1=Monday, ..., 6=Saturday
+- locale: string | null (default: null)
+- presets: string | null (default: null) — comma-separated keys: "today", "this-week", "next-7", "next-30"
+- placeholder: string (default: "Select date") — popover trigger text
+- dual: boolean attribute (default: absent) — show two months side-by-side in range mode
+- loading: boolean attribute (default: absent) — show skeleton loading state
+
+### JS Properties
+
+- value: string | null (mode="single"), string[] (mode="multi"), {start: string, end: string} | null (mode="range") — read/write
+- loading: boolean — read/write, reflects attribute
+
+### Methods
+
+- open(): void — open popover (popover display only)
+- close(): void — close popover
+- goToMonth(month: number, year: number): void — month is 0-indexed (0=Jan, 11=Dec)
+- showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
+- clearStatus(): void
+
+### Events
+
+- cal:change
+  - mode="single": detail = {value: string} — "YYYY-MM-DD"
+  - mode="range": detail = {value: {start: string, end: string}}
+  - mode="multi": detail = {value: string[]} — sorted array of "YYYY-MM-DD"
+- cal:month-change — detail = {year: number, month: number}
+- cal:open — detail = {}
+- cal:close — detail = {}
+- cal:status — detail = {type: string|null, message: string|null}
+
+### Preset Keys
+
+- "today" → {start: today, end: today}
+- "this-week" → {start: Sunday, end: Saturday} of current week
+- "next-7" → {start: today, end: today+6}
+- "next-30" → {start: today, end: today+29}
+
+### Example
+
+```html
+<cal-datepicker mode="range" dual presets="today,next-7,next-30" theme="light"></cal-datepicker>
+<script>
+  const el = document.querySelector('cal-datepicker');
+  el.addEventListener('cal:change', (e) => {
+    const { start, end } = e.detail.value;
+    console.log(start, end);
+  });
+</script>
+```
+
+---
+
+## Component: cal-timepicker
+
+Tag: <cal-timepicker>
+Class: CalTimepicker
+Extends: CalendarBase → HTMLElement
+
+### Attributes (observedAttributes)
+
+- mode: "single" | "multi" | "range" (default: "single")
+- display: "inline" | "popover" (default: "inline")
+- theme: "light" | "dark" | "auto" (default: "light")
+- start-time: string (default: "09:00") — "HH:MM"
+- end-time: string (default: "17:00") — "HH:MM"
+- interval: number (default: 30) — minutes between slots
+- format: "12h" | "24h" (default: "24h")
+- placeholder: string (default: "Select time") — popover trigger text
+- value: string (single: "14:30", range: "09:00/12:00", multi: "09:00,10:30")
+- duration-labels: boolean attribute (default: absent) — show duration labels
+- loading: boolean attribute (default: absent)
+
+### JS Properties
+
+- value: string | null (mode="single"), string[] (mode="multi"), {start: string, end: string} | null (mode="range") — read/write
+- slots: Array<{time: string, label?: string, available?: boolean}> | null — custom slot definitions, overrides attribute-based generation
+- unavailableTimes: string[] — array of "HH:MM" strings to mark unavailable (default: [])
+- loading: boolean — read/write
+
+### Methods
+
+- open(): void — open popover
+- close(): void — close popover
+- showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
+- clearStatus(): void
+
+### Events
+
+- cal:time-change
+  - mode="single": detail = {value: string} — "HH:MM"
+  - mode="range": detail = {value: {start: string, end: string}}
+  - mode="multi": detail = {value: string[]} — sorted array of "HH:MM"
+- cal:open — detail = {}
+- cal:close — detail = {}
+- cal:status — detail = {type: string|null, message: string|null}
+
+### Example
+
+```html
+<cal-timepicker start-time="08:00" end-time="20:00" interval="60" format="12h" duration-labels></cal-timepicker>
+<script>
+  const el = document.querySelector('cal-timepicker');
+  el.addEventListener('cal:time-change', (e) => {
+    console.log(e.detail.value); // "14:00"
+  });
+</script>
+```
+
+---
+
+## Component: cal-booking
+
+Tag: <cal-booking>
+Class: CalBooking
+Extends: CalendarBase → HTMLElement
+
+### Attributes (observedAttributes)
+
+- theme: "light" | "dark" | "auto" (default: "light")
+- display: "inline" | "popover" (default: "inline")
+- min-date: string | null (default: null)
+- max-date: string | null (default: null)
+- first-day: number (default: 0)
+- placeholder: string (default: "Select dates")
+- dual: boolean attribute (default: absent) — two month panels
+- show-labels-on-hover: boolean attribute (default: absent)
+- time-slots: boolean attribute (default: absent) — enable date→time two-step selection
+- time-start: string (default: "09:00") — time grid start when time-slots enabled
+- time-end: string (default: "17:00") — time grid end
+- time-interval: number (default: 60) — time slot interval in minutes
+- time-format: "12h" | "24h" (default: "24h")
+- duration-labels: boolean attribute (default: absent)
+- loading: boolean attribute (default: absent)
+
+### JS Properties
+
+- value: {start: string, end: string, startTime?: string, endTime?: string} | null — read/write
+- bookings: Booking[] — array of existing bookings (default: [])
+- dayData: Record<string, {label?: string, status?: string}> — static per-date metadata (default: {})
+- labelFormula: ((dateStr: string) => {label?: string, status?: string} | null) | null — dynamic labels (highest priority, default: null)
+- timeSlots: Array<{time: string, label?: string, available?: boolean}> | null — custom time slots (default: null)
+- loading: boolean — read/write
+
+### Booking Object Shape
+
+```
+{
+  id: string,
+  start: string,           // "YYYY-MM-DD" — first day of booking
+  end: string,             // "YYYY-MM-DD" — last day (checkout day)
+  label?: string,          // displayed on hover / in cell
+  color?: "blue" | "green" | "red" | "orange" | "gray"   // default: "blue"
+}
+```
+
+### Cell Status Resolution (priority order)
+
+1. labelFormula(dateStr) — if returns {status, label}, overrides everything
+2. dayData[dateStr] — static {status, label}
+3. Derived from bookings — "available", "booked", "half-day", "checkin-only", "checkout-only"
+
+### Methods
+
+- open(): void
+- close(): void
+- goToMonth(month: number, year: number): void
+- showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
+- clearStatus(): void
+
+### Events
+
+- cal:change — detail = {value: {start: string, end: string, startTime?: string, endTime?: string}}
+- cal:selection-invalid — detail = {start: string, end: string} — fires when selection overlaps booking
+- cal:month-change — detail = {year: number, month: number}
+- cal:open — detail = {}
+- cal:close — detail = {}
+- cal:status — detail = {type: string|null, message: string|null}
+
+### Overlap Validation
+
+Selecting a range that overlaps any booking (where selStart < booking.end && selEnd > booking.start) will:
+1. Emit cal:selection-invalid
+2. Clear the selection
+3. Show an error status banner "Selection overlaps an existing booking" (auto-dismiss 4s)
+
+Same-day boundaries are disallowed: a selection ending on a booking start date, or starting on a booking end date, triggers overlap.
+
+### Example
+
+```html
+<cal-booking theme="light" dual time-slots time-format="12h"></cal-booking>
+<script>
+  const el = document.querySelector('cal-booking');
+  el.bookings = [
+    { id: '1', start: '2026-03-05', end: '2026-03-10', label: 'Alice', color: 'blue' },
+    { id: '2', start: '2026-03-10', end: '2026-03-15', label: 'Bob', color: 'green' },
+  ];
+  el.labelFormula = (date) => {
+    const d = new Date(date);
+    return { label: (d.getDay() === 0 || d.getDay() === 6) ? '$150' : '$100' };
+  };
+  el.addEventListener('cal:change', (e) => {
+    console.log(e.detail.value);
+    // { start: "2026-03-16", end: "2026-03-20", startTime: "14:00", endTime: "11:00" }
+  });
+</script>
+```
+
+---
+
+## Component: cal-scheduler
+
+Tag: <cal-scheduler>
+Class: CalScheduler
+Extends: CalendarBase → HTMLElement
+
+### Attributes (observedAttributes)
+
+- theme: "light" | "dark" | "auto" (default: "light")
+- view: "day" | "week" | "month" (default: "week")
+- layout: "vertical" (default: "vertical")
+- date: string (default: today()) — anchor date "YYYY-MM-DD"
+- start-time: string (default: "08:00") — day grid start
+- end-time: string (default: "18:00") — day grid end
+- interval: number (default: 30) — slot interval in minutes
+- format: "12h" | "24h" (default: "24h")
+- first-day: number (default: 0)
+- slot-height: number (default: 48) — pixels per time slot
+- resource-mode: "tabs" | "columns" (default: "tabs")
+- show-event-time: "true" | "false" (default: "true") — show time row in default event rendering
+- show-fab: boolean attribute (default: absent) — floating action button
+- draggable-events: boolean attribute (default: absent) — enable drag move/resize/create
+- snap-interval: number | null (default: null, falls back to interval) — drag snap granularity in minutes
+- min-duration: number | null (default: null, falls back to snap interval) — minimum event duration in minutes
+- max-duration: number | null (default: null, no limit) — maximum event duration in minutes
+- loading: boolean attribute (default: absent)
+
+### JS Properties
+
+- resources: Resource[] — default: []
+- events: Event[] — default: []
+- eventActions: EventAction[] — default: []
+- eventContent: ((event: Event, resource: Resource) => HTMLElement | string) | null — custom renderer (default: null)
+- value: {date: string, startTime: string, endTime: string, resourceId: string, resource: Resource} | null — read-only, last selected slot
+- loading: boolean — read/write
+
+### Event Object Shape
+
+```
+{
+  id: string,                  // unique identifier
+  title: string,               // display title
+  start: string,               // "YYYY-MM-DD"
+  end?: string,                // "YYYY-MM-DD" for multi-day events
+  startTime?: string,          // "HH:MM" — omit for all-day events
+  endTime?: string,            // "HH:MM" — omit for all-day events
+  resourceId?: string,         // links to Resource.id
+  color?: "blue" | "green" | "red" | "orange" | "gray",  // default: "blue"
+  locked?: boolean,            // prevents drag move/resize (default: false)
+  metadata?: Record<string, string | number>   // shown in detail popover
+}
+```
+
+All-day events: omit startTime and endTime. Rendered in collapsible all-day row (week view) or as chips (month view).
+
+### Resource Object Shape
+
+```
+{
+  id: string,
+  name: string,
+  capacity?: number,
+  color?: "blue" | "green" | "red" | "orange" | "gray"
+}
+```
+
+### EventAction Object Shape
+
+```
+{
+  label: string,           // button text, also used as action identifier in cal:event-action
+  type?: "danger"          // applies red/destructive styling
+}
+```
+
+### Methods
+
+- goToDate(dateStr: string): void — navigate to date, emits cal:date-change
+- setView(view: "day"|"week"|"month"): void — switch view, emits cal:view-change
+- today(): void — navigate to today
+- next(): void — advance by 1 day/week/month depending on current view
+- prev(): void — go back by 1 day/week/month
+- findAvailableSlot(opts: {date?: string, duration: number, resourceId?: string, minCapacity?: number}): {resourceId: string, date: string, startTime: string, endTime: string} | null — searches up to 14 days
+- isSlotAvailable(date: string, startTime: string, endTime: string, resourceId: string): boolean — checks for time overlap with existing events
+- showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
+- clearStatus(): void
+
+### Events
+
+- cal:slot-select — detail = {date: string, startTime: string|null, endTime: string|null, resourceId: string|null, resource: Resource|null}
+  Fires when an empty time slot is clicked. In month view, startTime/endTime are null.
+
+- cal:slot-create — detail = {date: string, startTime: string, endTime: string, resourceId: string|null, resource: Resource|null}
+  Fires when drag-to-create completes (requires draggable-events).
+
+- cal:event-click — detail = {event: Event, resourceId: string|null, resource: Resource|null}
+  Fires when an event block is clicked. Opens detail popover.
+
+- cal:event-move — detail = {event: Event, from: {date, startTime, endTime, resourceId}, to: {date, startTime, endTime, resourceId}}
+  Fires when drag-to-move completes. The consumer must update events array.
+
+- cal:event-resize — detail = {event: Event, from: {endTime: string}, to: {endTime: string}}
+  Fires when drag-to-resize completes. Only bottom-edge resize is supported.
+
+- cal:event-action — detail = {action: string, event: Event, resourceId: string|null, resource: Resource|null}
+  Fires when an action button in the event detail popover is clicked.
+
+- cal:fab-create — detail = {date: string, view: string}
+  Fires when the floating action button is clicked (requires show-fab).
+
+- cal:date-change — detail = {date: string, view: string}
+  Fires on navigation (prev/next/today/goToDate).
+
+- cal:view-change — detail = {view: string, date: string}
+  Fires when view changes (setView or nav button).
+
+- cal:status — detail = {type: string|null, message: string|null}
+
+### Drag System Details
+
+Enabled by `draggable-events` attribute. Uses pointer events with 4px threshold.
+
+Move: creates a ghost clone at cursor position. Drop target resolved via data-date/data-time/data-resource-id attributes. Duration preserved. Emits cal:event-move.
+
+Resize: bottom handle only. Floating time label follows cursor. Snaps to snap-interval (or interval). Enforces min-duration and max-duration. Emits cal:event-resize.
+
+Create: drag on empty slot creates dashed preview block. Snaps to grid. Emits cal:slot-create on release.
+
+Locked events (event.locked = true) cannot be moved or resized. They display a lock icon.
+
+### Resource Modes
+
+- tabs: Resource tabs appear above grid. One resource visible at a time. "All" tab shows all.
+- columns: All resources shown as side-by-side columns in day view.
+
+### Example
+
+```html
+<cal-scheduler
+  view="week"
+  draggable-events
+  snap-interval="15"
+  show-fab
+  resource-mode="tabs"
+  format="12h"
+  theme="light"
+></cal-scheduler>
+<script>
+  const sched = document.querySelector('cal-scheduler');
+  sched.resources = [
+    { id: 'r1', name: 'Room A', capacity: 10 },
+    { id: 'r2', name: 'Room B', capacity: 20 },
+  ];
+  sched.events = [
+    { id: '1', title: 'Standup', start: '2026-03-02', startTime: '09:00', endTime: '09:30', resourceId: 'r1', color: 'blue' },
+    { id: '2', title: 'Workshop', start: '2026-03-03', startTime: '13:00', endTime: '16:00', resourceId: 'r2', color: 'green', locked: true },
+  ];
+  sched.eventActions = [{ label: 'Edit' }, { label: 'Delete', type: 'danger' }];
+  sched.eventContent = (event, resource) => {
+    const el = document.createElement('div');
+    el.innerHTML = `<strong>${event.title}</strong><br><small>${resource?.name || ''}</small>`;
+    return el;
+  };
+
+  sched.addEventListener('cal:event-move', (e) => {
+    const { event, to } = e.detail;
+    const updated = sched.events.map(ev =>
+      ev.id === event.id ? { ...ev, start: to.date, startTime: to.startTime, endTime: to.endTime, resourceId: to.resourceId } : ev
+    );
+    sched.events = updated;
+  });
+
+  sched.addEventListener('cal:event-resize', (e) => {
+    const { event, to } = e.detail;
+    sched.events = sched.events.map(ev =>
+      ev.id === event.id ? { ...ev, endTime: to.endTime } : ev
+    );
+  });
+
+  sched.addEventListener('cal:slot-create', (e) => {
+    const { date, startTime, endTime, resourceId } = e.detail;
+    sched.events = [...sched.events, {
+      id: String(Date.now()), title: 'New Event',
+      start: date, startTime, endTime, resourceId, color: 'orange',
+    }];
+  });
+</script>
+```
+
+---
+
+## Shared Base Class: CalendarBase
+
+All components extend CalendarBase → HTMLElement.
+
+### Inherited Methods
+
+- showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
+  Shows an inline status banner. autoDismiss is milliseconds.
+- clearStatus(): void — clears the banner, emits cal:status with null values
+- emit(name: string, detail?: object): void — dispatches CustomEvent with bubbles:true, composed:true
+
+### Inherited Event
+
+- cal:status — detail = {type: string|null, message: string|null} — fires on showStatus and clearStatus
+
+---
+
+## Theming
+
+Attribute: theme="light" | "dark" | "auto"
+
+theme="auto" uses @media (prefers-color-scheme: dark) to switch.
+
+All tokens are CSS custom properties set on :host. Values are raw HSL channels (e.g., "240 6% 10%") consumed as hsl(var(--cal-token)).
+
+### Core Tokens
+
+- --cal-bg: background (light: 0 0% 100%, dark: 240 6% 10%)
+- --cal-bg-muted: muted background (light: 240 5% 96%, dark: 240 4% 16%)
+- --cal-fg: foreground text (light: 240 6% 10%, dark: 0 0% 98%)
+- --cal-fg-muted: muted text (light: 240 4% 46%, dark: 240 4% 54%)
+- --cal-border: borders (light: 240 6% 90%, dark: 240 4% 20%)
+- --cal-accent: accent / selected state (light: 240 6% 10%, dark: 0 0% 98%)
+- --cal-accent-fg: text on accent (light: 0 0% 100%, dark: 240 6% 10%)
+- --cal-accent-subtle: subtle accent background (light: 240 5% 96%, dark: 240 4% 16%)
+- --cal-hover: hover background (light: 240 5% 93%, dark: 240 4% 20%)
+- --cal-ring: focus ring color (light: 240 6% 10%, dark: 0 0% 98%)
+- --cal-radius: border radius (default: 8px)
+- --cal-radius-sm: small border radius (default: 6px)
+- --cal-cell-size: datepicker cell size (default: 36px)
+- --cal-transition: transition timing (default: 150ms ease)
+
+### Booking Color Tokens (5 palettes)
+
+Each palette has -bg, -fg, and -hover variants.
+
+- --cal-booking-blue-bg / --cal-booking-blue-fg / --cal-booking-blue-hover
+- --cal-booking-green-bg / --cal-booking-green-fg / --cal-booking-green-hover
+- --cal-booking-red-bg / --cal-booking-red-fg / --cal-booking-red-hover
+- --cal-booking-orange-bg / --cal-booking-orange-fg / --cal-booking-orange-hover
+- --cal-booking-gray-bg / --cal-booking-gray-fg / --cal-booking-gray-hover
+
+### Scheduler Tokens
+
+- --cal-sched-grid-line: grid line color
+- --cal-sched-now-line: current time indicator color
+- --cal-sched-slot-hover: slot hover background
+- --cal-sched-header-bg: header/resource header background
+
+### Status Tokens (4 types × 3 variants)
+
+- --cal-status-error-bg / --cal-status-error-fg / --cal-status-error-border
+- --cal-status-warning-bg / --cal-status-warning-fg / --cal-status-warning-border
+- --cal-status-info-bg / --cal-status-info-fg / --cal-status-info-border
+- --cal-status-success-bg / --cal-status-success-fg / --cal-status-success-border
+
+### Override Example
+
+```css
+cal-scheduler {
+  --cal-accent: 220 90% 56%;
+  --cal-accent-fg: 0 0% 100%;
+  --cal-radius: 12px;
+  --cal-sched-now-line: 142 70% 45%;
+}
+```
+
+---
+
+## Data Shapes
+
+### Event
+
+```
+{
+  id: string,
+  title: string,
+  start: string,                           // "YYYY-MM-DD"
+  end?: string,                            // "YYYY-MM-DD"
+  startTime?: string,                      // "HH:MM" — omit for all-day
+  endTime?: string,                        // "HH:MM" — omit for all-day
+  resourceId?: string,
+  color?: "blue" | "green" | "red" | "orange" | "gray",
+  locked?: boolean,
+  metadata?: Record<string, string | number>
+}
+```
+
+### Resource
+
+```
+{
+  id: string,
+  name: string,
+  capacity?: number,
+  color?: "blue" | "green" | "red" | "orange" | "gray"
+}
+```
+
+### Booking
+
+```
+{
+  id: string,
+  start: string,
+  end: string,
+  label?: string,
+  color?: "blue" | "green" | "red" | "orange" | "gray"
+}
+```
+
+### TimeSlot
+
+```
+{
+  time: string,             // "HH:MM"
+  label?: string,
+  available?: boolean       // default: true
+}
+```
+
+### DayData
+
+```
+{
+  [dateStr: string]: {
+    label?: string,
+    status?: string
+  }
+}
+```
+
+### EventAction
+
+```
+{
+  label: string,
+  type?: "danger"
+}
+```
+
+---
+
+## Docs
+
+- [cal-datepicker](docs/cal-datepicker.md)
+- [cal-timepicker](docs/cal-timepicker.md)
+- [cal-booking](docs/cal-booking.md)
+- [cal-scheduler](docs/cal-scheduler.md)
+- [Theming](docs/theming.md)
