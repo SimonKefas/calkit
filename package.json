@@ -1,0 +1,13 @@
+{
+  "name": "calkit",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --config vite.datepicker.config.js && vite build --config vite.booking.config.js && vite build --config vite.timepicker.config.js && vite build --config vite.scheduler.config.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}

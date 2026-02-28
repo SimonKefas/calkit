@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CalKit — Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 40px 24px;
+      background: #fafafa;
+      color: #18181b;
+      line-height: 1.6;
+    }
+
+    .demo-header {
+      max-width: 800px;
+      margin: 0 auto 48px;
+    }
+
+    .demo-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .demo-header p {
+      color: #71717a;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .demo-grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    .demo-divider {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #18181b;
+      padding: 24px 0 0;
+      border-top: 2px solid #e4e4e7;
+    }
+
+    .demo-section {
+      background: #fff;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .demo-section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 4px;
+    }
+
+    .demo-section p {
+      font-size: 13px;
+      color: #71717a;
+      margin: 0 0 20px;
+    }
+
+    .demo-preview {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .demo-code {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #f4f4f5;
+      border-radius: 8px;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      color: #3f3f46;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .demo-output {
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #f4f4f5;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #52525b;
+      min-height: 28px;
+    }
+
+    .dark-bg {
+      background: #18181b;
+      padding: 24px;
+      border-radius: 8px;
+    }
+
+    .demo-section--api {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .demo-section--api .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .demo-btn {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      background: #fff;
+      color: #18181b;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .demo-btn:hover {
+      background: #f4f4f5;
+    }
+
+    .demo-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .demo-section--wide {
+      max-width: 960px;
+    }
+
+    .demo-section--wide .demo-preview {
+      display: block;
+    }
+
+    .demo-section--wide cal-scheduler {
+      width: 100%;
+    }
+
+    .demo-section--wide .sched-grid-wrapper {
+      max-height: 520px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    <h1>CalKit</h1>
+    <p>A zero-dependency calendar suite built with Web Components. Date picker, booking calendar, time picker, and resource scheduler.</p>
+  </div>
+
+  <div class="demo-grid">
+
+    <!-- ═══════════════════ DATE PICKER ═══════════════════ -->
+    <div class="demo-divider">Date Picker</div>
+
+    <!-- Single Inline -->
+    <div class="demo-section">
+      <h2>Single Date — Inline</h2>
+      <p>Click a date to select it. Arrow keys to navigate.</p>
+      <div class="demo-preview">
+        <cal-datepicker id="demo-single" mode="single" display="inline"></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-single">No date selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="single" display="inline"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Range Popover -->
+    <div class="demo-section">
+      <h2>Date Range — Popover</h2>
+      <p>Click the input to open. Select start date, then end date. Includes quick-select presets.</p>
+      <div class="demo-preview">
+        <cal-datepicker
+          id="demo-range"
+          mode="range"
+          display="popover"
+          presets="today,this-week,next-7,next-30"
+          placeholder="Pick a date range"
+        ></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-range">No range selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="range" display="popover"
+  presets="today,this-week,next-7,next-30"
+  placeholder="Pick a date range"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Dark Theme -->
+    <div class="demo-section">
+      <h2>Dark Theme — Inline</h2>
+      <p>Set theme="dark" for dark mode. All tokens switch automatically.</p>
+      <div class="dark-bg">
+        <cal-datepicker id="demo-dark" mode="single" display="inline" theme="dark"></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-dark">No date selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="single" display="inline" theme="dark"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Constrained Dates -->
+    <div class="demo-section">
+      <h2>Constrained Dates</h2>
+      <p>min-date and max-date restrict selectable range. Dates outside are disabled.</p>
+      <div class="demo-preview">
+        <cal-datepicker
+          id="demo-constrained"
+          mode="single"
+          display="inline"
+          min-date="2026-02-10"
+          max-date="2026-03-20"
+        ></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-constrained">No date selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="single" display="inline"
+  min-date="2026-02-10" max-date="2026-03-20"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Multi Select -->
+    <div class="demo-section">
+      <h2>Multi Select</h2>
+      <p>Click multiple dates to toggle selection. Useful for scheduling.</p>
+      <div class="demo-preview">
+        <cal-datepicker id="demo-multi" mode="multi" display="inline"></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-multi">No dates selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="multi" display="inline"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Dual Month Range -->
+    <div class="demo-section">
+      <h2>Dual Month — Range</h2>
+      <p>Two months side by side for easier range selection.</p>
+      <div class="demo-preview">
+        <cal-datepicker
+          id="demo-dual"
+          mode="range"
+          display="inline"
+          dual
+          presets="next-7,next-30"
+        ></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-dual">No range selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="range" display="inline" dual
+  presets="next-7,next-30"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Popover Single -->
+    <div class="demo-section">
+      <h2>Single Date — Popover</h2>
+      <p>Compact trigger input that opens a dropdown calendar.</p>
+      <div class="demo-preview">
+        <cal-datepicker
+          id="demo-popover-single"
+          mode="single"
+          display="popover"
+          placeholder="Choose a date"
+        ></cal-datepicker>
+      </div>
+      <div class="demo-output" id="output-popover-single">No date selected</div>
+      <div class="demo-code">&lt;cal-datepicker mode="single" display="popover"
+  placeholder="Choose a date"&gt;&lt;/cal-datepicker&gt;</div>
+    </div>
+
+    <!-- Programmatic API -->
+    <div class="demo-section">
+      <h2>Programmatic API</h2>
+      <p>Control the picker via JavaScript methods and properties.</p>
+      <div class="demo-preview">
+        <cal-datepicker id="demo-api" mode="single" display="inline"></cal-datepicker>
+      </div>
+      <div class="demo-section--api">
+        <div class="btn-row">
+          <button class="demo-btn" onclick="document.getElementById('demo-api').value = '2026-12-25'">Set Christmas</button>
+          <button class="demo-btn" onclick="document.getElementById('demo-api').goToMonth(0, 2026)">Go to Jan 2026</button>
+          <button class="demo-btn" onclick="document.getElementById('demo-api').value = null">Clear</button>
+        </div>
+      </div>
+      <div class="demo-output" id="output-api">No date selected</div>
+      <div class="demo-code">// Set value programmatically
+picker.value = '2026-12-25';
+
+// Navigate to a specific month
+picker.goToMonth(0, 2026);
+
+// Listen for changes
+picker.addEventListener('cal:change', (e) => {
+  console.log(e.detail.value);
+});</div>
+    </div>
+
+    <!-- ═══════════════════ BOOKING CALENDAR ═══════════════════ -->
+    <div class="demo-divider">Booking Calendar</div>
+
+    <!-- Basic Booking -->
+    <div class="demo-section">
+      <h2>Booking Calendar — Inline</h2>
+      <p>Shows existing bookings with colored blocks. Half-day diagonal on checkout/checkin overlap. Hover booked cells for tooltips.</p>
+      <div class="demo-preview">
+        <cal-booking id="demo-booking" display="inline" show-labels-on-hover></cal-booking>
+      </div>
+      <div class="demo-output" id="output-booking">No dates selected</div>
+      <div class="demo-code">picker.bookings = [
+  { id: 'b1', start: '2026-03-05', end: '2026-03-10', label: 'Guest A', color: 'blue' },
+  { id: 'b2', start: '2026-03-10', end: '2026-03-15', label: 'Guest B', color: 'green' },
+  // Half-day diagonal on March 10 (checkout + checkin)
+];
+// Add show-labels-on-hover for CSS tooltips</div>
+    </div>
+
+    <!-- Booking with Label Formula -->
+    <div class="demo-section">
+      <h2>Booking — Dynamic Pricing</h2>
+      <p>labelFormula dynamically sets cell labels and status. Weekends are priced higher. Hover booked cells for tooltips.</p>
+      <div class="demo-preview">
+        <cal-booking id="demo-booking-formula" display="inline" show-labels-on-hover></cal-booking>
+      </div>
+      <div class="demo-output" id="output-booking-formula">No dates selected</div>
+      <div class="demo-code">picker.labelFormula = (dateStr) => {
+  const d = new Date(dateStr + 'T00:00:00');
+  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+  return {
+    label: isWeekend ? '$180' : '$120',
+    status: 'available',
+  };
+};</div>
+    </div>
+
+    <!-- Booking Date + Time -->
+    <div class="demo-section">
+      <h2>Booking — Date + Time</h2>
+      <p>Select dates, then pick check-in/check-out times. Uses time-slots attribute for integrated date-then-time flow.</p>
+      <div class="demo-preview">
+        <cal-booking id="demo-booking-time" display="inline" show-labels-on-hover time-slots time-start="09:00" time-end="17:00" time-interval="60" time-format="12h"></cal-booking>
+      </div>
+      <div class="demo-output" id="output-booking-time">No dates or times selected</div>
+      <div class="demo-code">&lt;cal-booking display="inline" show-labels-on-hover
+  time-slots time-start="09:00" time-end="17:00"
+  time-interval="60" time-format="12h"&gt;&lt;/cal-booking&gt;</div>
+    </div>
+
+    <!-- Booking Dark Theme -->
+    <div class="demo-section">
+      <h2>Booking — Dark Theme</h2>
+      <p>Booking calendar with dark theme and dual month view. Hover booked cells for tooltips.</p>
+      <div class="dark-bg">
+        <cal-booking id="demo-booking-dark" display="inline" theme="dark" dual show-labels-on-hover></cal-booking>
+      </div>
+      <div class="demo-output" id="output-booking-dark">No dates selected</div>
+      <div class="demo-code">&lt;cal-booking display="inline" theme="dark" dual&gt;&lt;/cal-booking&gt;</div>
+    </div>
+
+    <!-- Booking Popover -->
+    <div class="demo-section">
+      <h2>Booking — Popover</h2>
+      <p>Booking calendar in a popover dropdown.</p>
+      <div class="demo-preview">
+        <cal-booking id="demo-booking-popover" display="popover" placeholder="Select booking dates"></cal-booking>
+      </div>
+      <div class="demo-output" id="output-booking-popover">No dates selected</div>
+      <div class="demo-code">&lt;cal-booking display="popover" placeholder="Select booking dates"&gt;&lt;/cal-booking&gt;</div>
+    </div>
+
+    <!-- ═══════════════════ TIME PICKER ═══════════════════ -->
+    <div class="demo-divider">Time Picker</div>
+
+    <!-- Time Single -->
+    <div class="demo-section">
+      <h2>Time Picker — Single</h2>
+      <p>Select a single time slot. Auto-generated from start/end/interval attributes.</p>
+      <div class="demo-preview">
+        <cal-timepicker id="demo-time-single" mode="single" display="inline" start-time="09:00" end-time="17:00" interval="30" format="12h"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-time-single">No time selected</div>
+      <div class="demo-code">&lt;cal-timepicker mode="single" display="inline"
+  start-time="09:00" end-time="17:00" interval="30" format="12h"&gt;&lt;/cal-timepicker&gt;</div>
+    </div>
+
+    <!-- Time Multi -->
+    <div class="demo-section">
+      <h2>Time Picker — Multi Select</h2>
+      <p>Toggle multiple time slots. Useful for availability scheduling.</p>
+      <div class="demo-preview">
+        <cal-timepicker id="demo-time-multi" mode="multi" display="inline" start-time="08:00" end-time="18:00" interval="60" format="12h"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-time-multi">No times selected</div>
+      <div class="demo-code">&lt;cal-timepicker mode="multi" display="inline"
+  start-time="08:00" end-time="18:00" interval="60" format="12h"&gt;&lt;/cal-timepicker&gt;</div>
+    </div>
+
+    <!-- Time Range -->
+    <div class="demo-section">
+      <h2>Time Picker — Range</h2>
+      <p>Click start time, then end time to select a range. With some unavailable slots.</p>
+      <div class="demo-preview">
+        <cal-timepicker id="demo-time-range" mode="range" display="inline" start-time="09:00" end-time="17:00" interval="30"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-time-range">No time range selected</div>
+      <div class="demo-code">picker.unavailableTimes = ['12:00', '12:30', '13:00'];</div>
+    </div>
+
+    <!-- Time Popover -->
+    <div class="demo-section">
+      <h2>Time Picker — Popover</h2>
+      <p>Time picker in a compact popover dropdown.</p>
+      <div class="demo-preview">
+        <cal-timepicker id="demo-time-popover" mode="single" display="popover" start-time="09:00" end-time="17:00" interval="30" format="12h" placeholder="Pick a time"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-time-popover">No time selected</div>
+      <div class="demo-code">&lt;cal-timepicker mode="single" display="popover"
+  start-time="09:00" end-time="17:00" interval="30" format="12h"
+  placeholder="Pick a time"&gt;&lt;/cal-timepicker&gt;</div>
+    </div>
+
+    <!-- Custom Slots -->
+    <div class="demo-section">
+      <h2>Time Picker — Custom Slots</h2>
+      <p>Explicit slot definitions with labels and availability.</p>
+      <div class="demo-preview">
+        <cal-timepicker id="demo-time-custom" mode="single" display="inline" format="12h"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-time-custom">No time selected</div>
+      <div class="demo-code">picker.slots = [
+  { time: '09:00', label: 'Morning', available: true },
+  { time: '10:00', label: 'Available', available: true },
+  { time: '11:00', label: 'Available', available: true },
+  { time: '12:00', label: 'Lunch', available: false },
+  { time: '13:00', label: 'Busy', available: false },
+  { time: '14:00', label: 'Afternoon', available: true },
+  { time: '15:00', label: 'Available', available: true },
+  { time: '16:00', label: 'Last slot', available: true },
+];</div>
+    </div>
+
+    <!-- ═══════════════════ COMPOSITION ═══════════════════ -->
+    <div class="demo-divider">Date + Time Composition</div>
+
+    <!-- Date + Time -->
+    <div class="demo-section">
+      <h2>Date + Time — Inline</h2>
+      <p>Compose date and time pickers side by side. Events combine into a datetime string.</p>
+      <div class="demo-row">
+        <cal-datepicker id="demo-dt-date" mode="single" display="inline"></cal-datepicker>
+        <cal-timepicker id="demo-dt-time" mode="single" display="inline" start-time="09:00" end-time="17:00" interval="30" format="12h"></cal-timepicker>
+      </div>
+      <div class="demo-output" id="output-datetime">No date or time selected</div>
+      <div class="demo-code">&lt;cal-datepicker id="date" mode="single" display="inline"&gt;&lt;/cal-datepicker&gt;
+&lt;cal-timepicker id="time" mode="single" display="inline"&gt;&lt;/cal-timepicker&gt;
+
+// Combine in user code:
+const datetime = `${date.value}T${time.value}`;</div>
+    </div>
+
+    <!-- ═══════════════════ SCHEDULER ═══════════════════ -->
+    <div class="demo-divider">Scheduler</div>
+
+    <!-- Week View — Resource Tabs -->
+    <div class="demo-section demo-section--wide">
+      <h2>Week View — Resource Tabs</h2>
+      <p>Resource tabs filter the view. "All" overlays events at full width. Click a slot to select it — a prompt card appears with a "+" button for creation. Click events to see detail with action buttons.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-week" view="week" resource-mode="tabs" start-time="08:00" end-time="18:00" interval="30" slot-height="48" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-week">Click a slot or event</div>
+      <div class="demo-code">&lt;cal-scheduler view="week" resource-mode="tabs"
+  start-time="08:00" end-time="18:00" interval="30" format="12h"&gt;&lt;/cal-scheduler&gt;
+
+scheduler.resources = [ ... ];
+scheduler.events = [ ... ];
+scheduler.eventActions = [{ label: 'Edit' }, { label: 'Delete', type: 'danger' }];
+
+scheduler.addEventListener('cal:slot-create', (e) =&gt; {
+  console.log('Create at:', e.detail);
+});
+scheduler.addEventListener('cal:event-action', (e) =&gt; {
+  console.log('Action:', e.detail.action, e.detail.event);
+});</div>
+    </div>
+
+    <!-- Week View — Columns Mode -->
+    <div class="demo-section demo-section--wide">
+      <h2>Week View — Columns Mode</h2>
+      <p>Set resource-mode="columns" for the original sub-lane layout. Each resource gets its own lane within each day column.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-week-cols" view="week" resource-mode="columns" start-time="08:00" end-time="18:00" interval="30" slot-height="48" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-week-cols">Click a slot or event</div>
+      <div class="demo-code">&lt;cal-scheduler view="week" resource-mode="columns"
+  start-time="08:00" end-time="18:00"&gt;&lt;/cal-scheduler&gt;</div>
+    </div>
+
+    <!-- Day View — Single Resource -->
+    <div class="demo-section demo-section--wide">
+      <h2>Day View — Single Resource</h2>
+      <p>Single resource hides the resource header for a clean day timeline. Overlapping events stack side-by-side.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-day" view="day" start-time="07:00" end-time="19:00" interval="30" slot-height="40" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-day">Click a slot or event</div>
+      <div class="demo-code">&lt;cal-scheduler view="day" start-time="07:00" end-time="19:00"
+  interval="30" slot-height="40" format="12h"&gt;&lt;/cal-scheduler&gt;
+
+// Single resource = no header row
+scheduler.resources = [{ id: 'desk', name: 'My Desk' }];</div>
+    </div>
+
+    <!-- Month View -->
+    <div class="demo-section demo-section--wide">
+      <h2>Month View</h2>
+      <p>Monthly overview with event chips. Resource tabs let you filter. "+N more" overflow for busy days.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-month" view="month" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-month">Click a cell or event</div>
+      <div class="demo-code">&lt;cal-scheduler view="month" format="12h"&gt;&lt;/cal-scheduler&gt;</div>
+    </div>
+
+    <!-- Dark Theme -->
+    <div class="demo-section demo-section--wide">
+      <h2>Scheduler — Dark Theme</h2>
+      <p>Dark theme with week view. All scheduler tokens switch automatically.</p>
+      <div class="dark-bg">
+        <cal-scheduler id="demo-sched-dark" view="week" theme="dark" start-time="09:00" end-time="17:00" interval="30" slot-height="44" format="24h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-dark">Click a slot or event</div>
+      <div class="demo-code">&lt;cal-scheduler view="week" theme="dark"
+  start-time="09:00" end-time="17:00" format="24h"&gt;&lt;/cal-scheduler&gt;</div>
+    </div>
+
+    <!-- Programmatic API -->
+    <div class="demo-section demo-section--wide">
+      <h2>Scheduler — Programmatic API</h2>
+      <p>Navigate views, jump to today, and find available slots programmatically.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-api" view="week" start-time="08:00" end-time="18:00" interval="30" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-section--api">
+        <div class="btn-row">
+          <button class="demo-btn" onclick="document.getElementById('demo-sched-api').setView('day')">Day View</button>
+          <button class="demo-btn" onclick="document.getElementById('demo-sched-api').setView('week')">Week View</button>
+          <button class="demo-btn" onclick="document.getElementById('demo-sched-api').setView('month')">Month View</button>
+          <button class="demo-btn" onclick="document.getElementById('demo-sched-api').today()">Today</button>
+          <button class="demo-btn" id="btn-find-slot">Find 1hr Slot</button>
+        </div>
+      </div>
+      <div class="demo-output" id="output-sched-api">Use the buttons above</div>
+      <div class="demo-code">scheduler.setView('day');
+scheduler.today();
+scheduler.next(); / scheduler.prev();
+
+const slot = scheduler.findAvailableSlot({ duration: 60 });
+// → { resourceId, date, startTime, endTime }</div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="demo-section demo-section--wide">
+      <h2>Scheduler — Loading Skeleton</h2>
+      <p>Set loading attribute to show shimmer skeletons while data loads.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-loading" view="week" loading start-time="08:00" end-time="18:00" interval="30"></cal-scheduler>
+      </div>
+      <div class="demo-section--api">
+        <div class="btn-row">
+          <button class="demo-btn" id="btn-sched-load">Toggle Loading</button>
+        </div>
+      </div>
+      <div class="demo-code">&lt;cal-scheduler view="week" loading&gt;&lt;/cal-scheduler&gt;
+
+// Remove loading when data arrives
+scheduler.loading = false;</div>
+    </div>
+
+    <!-- Custom Event Content -->
+    <div class="demo-section demo-section--wide">
+      <h2>Custom Event Content</h2>
+      <p>Use the <code>eventContent</code> property to render custom HTML inside event blocks. Set <code>show-event-time="false"</code> to hide the default time row.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-custom" view="week" resource-mode="tabs" start-time="08:00" end-time="18:00" interval="30" slot-height="48" format="12h" show-event-time="false"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-custom">Events display custom metadata</div>
+      <div class="demo-code">scheduler.eventContent = (event, resource) =&gt; {
+  const el = document.createElement('div');
+  el.innerHTML = `&lt;strong&gt;${event.title}&lt;/strong&gt;`;
+  if (event.metadata?.client) {
+    el.innerHTML += `&lt;div style="font-size:10px;opacity:0.8"&gt;Client: ${event.metadata.client}&lt;/div&gt;`;
+  }
+  return el;
+};</div>
+    </div>
+
+    <!-- FAB Demo -->
+    <div class="demo-section demo-section--wide">
+      <h2>Floating Add Button (FAB)</h2>
+      <p>Set <code>show-fab</code> to display a circular "+" button. Clicking it fires <code>cal:fab-create</code> with the current date and view.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-fab" view="week" show-fab start-time="08:00" end-time="18:00" interval="30" slot-height="48" format="12h"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-fab">Click the + button in the bottom-right</div>
+      <div class="demo-code">&lt;cal-scheduler view="week" show-fab&gt;&lt;/cal-scheduler&gt;
+
+scheduler.addEventListener('cal:fab-create', (e) =&gt; {
+  console.log('Create event for:', e.detail.date, e.detail.view);
+});</div>
+    </div>
+
+    <!-- Drag Demo -->
+    <div class="demo-section demo-section--wide">
+      <h2>Drag to Move &amp; Resize</h2>
+      <p>Set <code>draggable-events</code> to enable drag-to-move and resize handles. Events with <code>locked: true</code> cannot be dragged (Room B/C events below). Drag on empty space to create. Use <code>snap-interval</code> for fine-grained snapping (15 min below on a 30 min grid). <code>min-duration</code>/<code>max-duration</code> constrain event length.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-sched-drag" view="week" draggable-events resource-mode="tabs" start-time="08:00" end-time="18:00" interval="30" slot-height="48" format="12h" snap-interval="15" min-duration="15" max-duration="180"></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-sched-drag">Drag an event to move it, or drag its bottom edge to resize (15min snap, 15min–3hr range)</div>
+      <div class="demo-code">&lt;cal-scheduler view="week" draggable-events
+  snap-interval="15" min-duration="15" max-duration="180"&gt;
+&lt;/cal-scheduler&gt;
+
+scheduler.addEventListener('cal:event-move', (e) =&gt; {
+  const { event, from, to } = e.detail;
+  // Update event in your data source
+});
+scheduler.addEventListener('cal:event-resize', (e) =&gt; {
+  const { event, from, to } = e.detail;
+  // Update event endTime
+});</div>
+    </div>
+
+    <!-- Venue Booking Workflow -->
+    <div class="demo-section demo-section--wide">
+      <h2>Venue Booking — Full Workflow</h2>
+      <p>Complete booking workflow with all features: custom content, FAB, drag to move/resize. Browse venues via tabs, click a slot to see the creation prompt, click "+" to create a booking.</p>
+      <div class="demo-preview">
+        <cal-scheduler id="demo-venue" view="week" resource-mode="tabs" start-time="09:00" end-time="21:00" interval="60" slot-height="52" format="12h" show-fab draggable-events></cal-scheduler>
+      </div>
+      <div class="demo-output" id="output-venue">Select a time slot to book a venue</div>
+      <div class="demo-code">// Venue booking workflow
+scheduler.eventActions = [
+  { label: 'Edit' },
+  { label: 'Cancel Booking', type: 'danger' },
+];
+
+scheduler.addEventListener('cal:slot-create', (e) =&gt; {
+  // Create a new booking at the selected slot
+  const { date, startTime, endTime, resourceId } = e.detail;
+  scheduler.events = [...scheduler.events, newBooking];
+});
+
+scheduler.addEventListener('cal:event-action', (e) =&gt; {
+  if (e.detail.action === 'Cancel Booking') {
+    scheduler.events = scheduler.events.filter(ev =&gt; ev.id !== e.detail.event.id);
+  }
+});</div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/index.js"></script>
+  <script>
+    // Wait for all components to be defined
+    Promise.all([
+      customElements.whenDefined('cal-datepicker'),
+      customElements.whenDefined('cal-booking'),
+      customElements.whenDefined('cal-timepicker'),
+      customElements.whenDefined('cal-scheduler'),
+    ]).then(() => {
+
+      // ── Date Picker Events ──
+
+      document.getElementById('demo-single').addEventListener('cal:change', (e) => {
+        document.getElementById('output-single').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      document.getElementById('demo-range').addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-range').textContent = 'Range: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      document.getElementById('demo-dark').addEventListener('cal:change', (e) => {
+        document.getElementById('output-dark').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      document.getElementById('demo-constrained').addEventListener('cal:change', (e) => {
+        document.getElementById('output-constrained').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      document.getElementById('demo-multi').addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-multi').textContent = 'Selected: ' + v.join(', ');
+      });
+
+      document.getElementById('demo-dual').addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-dual').textContent = 'Range: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      document.getElementById('demo-popover-single').addEventListener('cal:change', (e) => {
+        document.getElementById('output-popover-single').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      document.getElementById('demo-api').addEventListener('cal:change', (e) => {
+        document.getElementById('output-api').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      // ── Booking Calendar Setup ──
+
+      // Basic booking
+      const bookingEl = document.getElementById('demo-booking');
+      bookingEl.bookings = [
+        { id: 'b1', start: '2026-03-05', end: '2026-03-10', label: 'Guest A', color: 'blue' },
+        { id: 'b2', start: '2026-03-10', end: '2026-03-15', label: 'Guest B', color: 'green' },
+        { id: 'b3', start: '2026-03-20', end: '2026-03-23', label: 'Guest C', color: 'orange' },
+      ];
+      bookingEl.goToMonth(2, 2026); // March 2026
+
+      bookingEl.addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-booking').textContent = 'Selected: ' + v.start + ' \u2192 ' + v.end;
+      });
+      bookingEl.addEventListener('cal:selection-invalid', (e) => {
+        document.getElementById('output-booking').textContent = 'Invalid selection — overlaps a booking!';
+      });
+
+      // Booking with formula
+      const bookingFormula = document.getElementById('demo-booking-formula');
+      bookingFormula.bookings = [
+        { id: 'f1', start: '2026-03-12', end: '2026-03-16', label: 'Reserved', color: 'red' },
+      ];
+      bookingFormula.labelFormula = (dateStr) => {
+        const d = new Date(dateStr + 'T00:00:00');
+        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+        return {
+          label: isWeekend ? '$180' : '$120',
+          status: undefined, // let bookings determine status
+        };
+      };
+      bookingFormula.goToMonth(2, 2026);
+
+      bookingFormula.addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-booking-formula').textContent = 'Selected: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      // Booking date + time
+      const bookingTime = document.getElementById('demo-booking-time');
+      bookingTime.bookings = [
+        { id: 't1', start: '2026-03-05', end: '2026-03-10', label: 'Guest A', color: 'blue' },
+        { id: 't2', start: '2026-03-15', end: '2026-03-18', label: 'Guest B', color: 'green' },
+      ];
+      bookingTime.goToMonth(2, 2026);
+
+      bookingTime.addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        let text = 'Selected: ' + v.start + ' \u2192 ' + v.end;
+        if (v.startTime && v.endTime) {
+          text += ' (' + v.startTime + ' \u2013 ' + v.endTime + ')';
+        }
+        document.getElementById('output-booking-time').textContent = text;
+      });
+      bookingTime.addEventListener('cal:selection-invalid', (e) => {
+        document.getElementById('output-booking-time').textContent = 'Invalid selection \u2014 overlaps a booking!';
+      });
+
+      // Booking dark
+      const bookingDark = document.getElementById('demo-booking-dark');
+      bookingDark.bookings = [
+        { id: 'd1', start: '2026-03-03', end: '2026-03-08', label: 'Alice', color: 'blue' },
+        { id: 'd2', start: '2026-03-08', end: '2026-03-12', label: 'Bob', color: 'green' },
+        { id: 'd3', start: '2026-03-18', end: '2026-03-22', label: 'Carol', color: 'orange' },
+      ];
+      bookingDark.goToMonth(2, 2026);
+
+      bookingDark.addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-booking-dark').textContent = 'Selected: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      // Booking popover
+      const bookingPopover = document.getElementById('demo-booking-popover');
+      bookingPopover.bookings = [
+        { id: 'p1', start: '2026-03-07', end: '2026-03-11', label: 'Booked', color: 'gray' },
+      ];
+      bookingPopover.goToMonth(2, 2026);
+
+      bookingPopover.addEventListener('cal:change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-booking-popover').textContent = 'Selected: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      // ── Time Picker Events ──
+
+      document.getElementById('demo-time-single').addEventListener('cal:time-change', (e) => {
+        document.getElementById('output-time-single').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      document.getElementById('demo-time-multi').addEventListener('cal:time-change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-time-multi').textContent = 'Selected: ' + v.join(', ');
+      });
+
+      // Time range with unavailable slots
+      const timeRange = document.getElementById('demo-time-range');
+      timeRange.unavailableTimes = ['12:00', '12:30', '13:00'];
+      timeRange.addEventListener('cal:time-change', (e) => {
+        const v = e.detail.value;
+        document.getElementById('output-time-range').textContent = 'Range: ' + v.start + ' \u2192 ' + v.end;
+      });
+
+      document.getElementById('demo-time-popover').addEventListener('cal:time-change', (e) => {
+        document.getElementById('output-time-popover').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      // Custom slots
+      const timeCustom = document.getElementById('demo-time-custom');
+      timeCustom.slots = [
+        { time: '09:00', label: 'Morning', available: true },
+        { time: '10:00', label: 'Available', available: true },
+        { time: '11:00', label: 'Available', available: true },
+        { time: '12:00', label: 'Lunch', available: false },
+        { time: '13:00', label: 'Busy', available: false },
+        { time: '14:00', label: 'Afternoon', available: true },
+        { time: '15:00', label: 'Available', available: true },
+        { time: '16:00', label: 'Last slot', available: true },
+      ];
+      timeCustom.addEventListener('cal:time-change', (e) => {
+        document.getElementById('output-time-custom').textContent = 'Selected: ' + e.detail.value;
+      });
+
+      // ── Date + Time Composition ──
+
+      let selectedDate = null;
+      let selectedTime = null;
+
+      document.getElementById('demo-dt-date').addEventListener('cal:change', (e) => {
+        selectedDate = e.detail.value;
+        updateDatetime();
+      });
+
+      document.getElementById('demo-dt-time').addEventListener('cal:time-change', (e) => {
+        selectedTime = e.detail.value;
+        updateDatetime();
+      });
+
+      function updateDatetime() {
+        const output = document.getElementById('output-datetime');
+        if (selectedDate && selectedTime) {
+          output.textContent = 'DateTime: ' + selectedDate + 'T' + selectedTime;
+        } else if (selectedDate) {
+          output.textContent = 'Date: ' + selectedDate + ' (select a time)';
+        } else if (selectedTime) {
+          output.textContent = 'Time: ' + selectedTime + ' (select a date)';
+        } else {
+          output.textContent = 'No date or time selected';
+        }
+      }
+
+      // ── Scheduler Setup ──
+
+      // Shared resource data
+      const schedResources = [
+        { id: 'room-a', name: 'Room A', color: 'blue', capacity: 10 },
+        { id: 'room-b', name: 'Room B', color: 'green', capacity: 6 },
+        { id: 'room-c', name: 'Room C', color: 'orange', capacity: 4 },
+      ];
+
+      // Generate demo events relative to today
+      const today = new Date();
+      const fmt = (d) => d.toISOString().slice(0, 10);
+      const dayOffset = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return fmt(d); };
+
+      const schedEvents = [
+        { id: 'e1', resourceId: 'room-a', start: dayOffset(0), end: dayOffset(0), startTime: '09:00', endTime: '10:30', title: 'Team Standup', color: 'blue' },
+        { id: 'e2', resourceId: 'room-a', start: dayOffset(0), end: dayOffset(0), startTime: '13:00', endTime: '14:00', title: 'Design Review', color: 'blue' },
+        { id: 'e3', resourceId: 'room-b', start: dayOffset(0), end: dayOffset(0), startTime: '10:00', endTime: '11:30', title: 'Sprint Planning', color: 'green' },
+        { id: 'e4', resourceId: 'room-b', start: dayOffset(0), end: dayOffset(0), startTime: '14:00', endTime: '15:30', title: '1:1 Meeting', color: 'green' },
+        { id: 'e5', resourceId: 'room-c', start: dayOffset(0), end: dayOffset(0), startTime: '09:30', endTime: '10:30', title: 'Client Call', color: 'orange' },
+        { id: 'e6', resourceId: 'room-a', start: dayOffset(1), end: dayOffset(1), startTime: '09:00', endTime: '10:00', title: 'Kickoff', color: 'blue' },
+        { id: 'e7', resourceId: 'room-a', start: dayOffset(1), end: dayOffset(1), startTime: '10:00', endTime: '11:00', title: 'Workshop', color: 'blue' },
+        { id: 'e8', resourceId: 'room-b', start: dayOffset(1), end: dayOffset(1), startTime: '11:00', endTime: '12:00', title: 'Retrospective', color: 'green' },
+        { id: 'e9', resourceId: 'room-c', start: dayOffset(2), end: dayOffset(2), startTime: '14:00', endTime: '16:00', title: 'Training', color: 'orange' },
+        { id: 'e10', resourceId: 'room-a', start: dayOffset(2), end: dayOffset(2), startTime: '09:00', endTime: '09:30', title: 'Quick Sync', color: 'blue' },
+        { id: 'e11', resourceId: 'room-b', start: dayOffset(3), end: dayOffset(3), startTime: '10:00', endTime: '12:00', title: 'Product Demo', color: 'green' },
+        { id: 'e12', resourceId: 'room-a', start: dayOffset(3), end: dayOffset(3), startTime: '13:00', endTime: '14:30', title: 'Brainstorm', color: 'blue' },
+        { id: 'e13', resourceId: 'room-c', start: dayOffset(4), end: dayOffset(4), startTime: '09:00', endTime: '10:00', title: 'Standup', color: 'orange' },
+        { id: 'e14', resourceId: 'room-a', start: dayOffset(4), end: dayOffset(4), startTime: '15:00', endTime: '17:00', title: 'All Hands', color: 'blue' },
+        { id: 'e15', resourceId: 'room-b', start: dayOffset(5), end: dayOffset(5), startTime: '10:00', endTime: '11:00', title: 'Code Review', color: 'green' },
+        // All-day event
+        { id: 'e16', resourceId: 'room-a', start: dayOffset(2), end: dayOffset(2), title: 'Office Closed PM', color: 'gray' },
+        // Multi-day
+        { id: 'e17', resourceId: 'room-c', start: dayOffset(-1), end: dayOffset(1), title: 'Conference', color: 'orange' },
+      ];
+
+      // Week view — resource tabs
+      const schedWeek = document.getElementById('demo-sched-week');
+      schedWeek.resources = schedResources;
+      schedWeek.events = schedEvents;
+      schedWeek.eventActions = [{ label: 'Edit' }, { label: 'Delete', type: 'danger' }];
+
+      schedWeek.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-week').textContent =
+          'Slot selected: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime + (d.resource ? ' (' + d.resource.name + ')' : '');
+      });
+      schedWeek.addEventListener('cal:slot-create', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-week').textContent =
+          'Create at: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime + (d.resource ? ' (' + d.resource.name + ')' : '');
+      });
+      schedWeek.addEventListener('cal:event-click', (e) => {
+        const ev = e.detail.event;
+        document.getElementById('output-sched-week').textContent =
+          'Event: "' + ev.title + '" (' + (e.detail.resource?.name || ev.resourceId) + ')';
+      });
+      schedWeek.addEventListener('cal:event-action', (e) => {
+        document.getElementById('output-sched-week').textContent =
+          'Action: "' + e.detail.action + '" on "' + e.detail.event.title + '"';
+      });
+
+      // Week view — columns mode
+      const schedWeekCols = document.getElementById('demo-sched-week-cols');
+      schedWeekCols.resources = schedResources;
+      schedWeekCols.events = schedEvents;
+
+      schedWeekCols.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-week-cols').textContent =
+          'Slot: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime + ' (' + (d.resource?.name || d.resourceId) + ')';
+      });
+      schedWeekCols.addEventListener('cal:event-click', (e) => {
+        const ev = e.detail.event;
+        document.getElementById('output-sched-week-cols').textContent =
+          'Event: "' + ev.title + '" (' + (e.detail.resource?.name || ev.resourceId) + ')';
+      });
+
+      // Day view — single resource with overlapping events
+      const schedDay = document.getElementById('demo-sched-day');
+      schedDay.resources = [{ id: 'desk', name: 'My Desk', color: 'blue' }];
+      schedDay.events = [
+        { id: 'd1', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '08:00', endTime: '09:30', title: 'Morning Focus', color: 'blue' },
+        { id: 'd2', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '09:00', endTime: '10:00', title: 'Team Call', color: 'green' },
+        { id: 'd3', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '10:30', endTime: '11:30', title: 'Code Review', color: 'orange' },
+        { id: 'd4', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '13:00', endTime: '14:30', title: 'Deep Work', color: 'blue' },
+        { id: 'd5', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '13:30', endTime: '14:00', title: 'Quick Chat', color: 'red' },
+        { id: 'd6', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '15:00', endTime: '16:00', title: 'Planning', color: 'green' },
+        { id: 'd7', resourceId: 'desk', start: dayOffset(0), end: dayOffset(0), startTime: '16:30', endTime: '18:00', title: 'Wrap-up', color: 'gray' },
+      ];
+
+      schedDay.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-day').textContent =
+          'Slot: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime;
+      });
+      schedDay.addEventListener('cal:event-click', (e) => {
+        document.getElementById('output-sched-day').textContent =
+          'Event: "' + e.detail.event.title + '"';
+      });
+
+      // Month view
+      const schedMonth = document.getElementById('demo-sched-month');
+      schedMonth.resources = schedResources;
+      schedMonth.events = schedEvents;
+
+      schedMonth.addEventListener('cal:slot-select', (e) => {
+        document.getElementById('output-sched-month').textContent = 'Date: ' + e.detail.date;
+      });
+      schedMonth.addEventListener('cal:event-click', (e) => {
+        const ev = e.detail.event;
+        document.getElementById('output-sched-month').textContent =
+          'Event: "' + ev.title + '" (' + (e.detail.resource?.name || ev.resourceId) + ')';
+      });
+
+      // Dark theme
+      const schedDark = document.getElementById('demo-sched-dark');
+      schedDark.resources = schedResources.slice(0, 2);
+      schedDark.events = schedEvents.filter((e) => e.resourceId !== 'room-c');
+
+      schedDark.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-dark').textContent =
+          'Slot: ' + d.date + ' ' + (d.startTime || '') + '\u2013' + (d.endTime || '') + ' (' + (d.resource?.name || '') + ')';
+      });
+      schedDark.addEventListener('cal:event-click', (e) => {
+        document.getElementById('output-sched-dark').textContent =
+          'Event: "' + e.detail.event.title + '"';
+      });
+
+      // API demo
+      const schedApi = document.getElementById('demo-sched-api');
+      schedApi.resources = schedResources;
+      schedApi.events = schedEvents;
+
+      schedApi.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        document.getElementById('output-sched-api').textContent =
+          'Slot: ' + d.date + ' ' + (d.startTime || '') + '\u2013' + (d.endTime || '');
+      });
+      schedApi.addEventListener('cal:view-change', (e) => {
+        document.getElementById('output-sched-api').textContent =
+          'View changed to: ' + e.detail.view;
+      });
+
+      document.getElementById('btn-find-slot').addEventListener('click', () => {
+        const slot = schedApi.findAvailableSlot({ duration: 60 });
+        if (slot) {
+          document.getElementById('output-sched-api').textContent =
+            'Available: ' + slot.date + ' ' + slot.startTime + '\u2013' + slot.endTime + ' (' + slot.resourceId + ')';
+        } else {
+          document.getElementById('output-sched-api').textContent = 'No available slot found';
+        }
+      });
+
+      // Loading toggle
+      document.getElementById('btn-sched-load').addEventListener('click', () => {
+        const el = document.getElementById('demo-sched-loading');
+        el.loading = !el.loading;
+      });
+
+      // Custom event content demo
+      const schedCustom = document.getElementById('demo-sched-custom');
+      schedCustom.resources = schedResources;
+      schedCustom.events = schedEvents.map((ev) => ({
+        ...ev,
+        metadata: { ...ev.metadata, priority: ev.color === 'red' ? 'High' : 'Normal' },
+      }));
+      schedCustom.eventContent = (event, resource) => {
+        const el = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = event.title || '';
+        title.style.fontSize = '11px';
+        el.appendChild(title);
+        if (event.metadata) {
+          const meta = document.createElement('div');
+          meta.style.fontSize = '10px';
+          meta.style.opacity = '0.8';
+          const parts = [];
+          if (event.metadata.client) parts.push('Client: ' + event.metadata.client);
+          if (event.metadata.priority) parts.push(event.metadata.priority);
+          meta.textContent = parts.join(' \u2022 ') || (resource ? resource.name : '');
+          if (meta.textContent) el.appendChild(meta);
+        }
+        return el;
+      };
+      schedCustom.addEventListener('cal:event-click', (e) => {
+        document.getElementById('output-sched-custom').textContent =
+          'Clicked: "' + e.detail.event.title + '" — custom content rendered';
+      });
+
+      // FAB demo
+      const schedFab = document.getElementById('demo-sched-fab');
+      schedFab.resources = [{ id: 'main', name: 'Main Calendar', color: 'blue' }];
+      schedFab.events = schedEvents.filter((ev) => ev.resourceId === 'room-a').map((ev) => ({ ...ev, resourceId: 'main' }));
+      schedFab.addEventListener('cal:fab-create', (e) => {
+        document.getElementById('output-sched-fab').textContent =
+          'FAB clicked — date: ' + e.detail.date + ', view: ' + e.detail.view;
+      });
+
+      // Drag demo — lock events from other resources to show locked vs draggable
+      const schedDrag = document.getElementById('demo-sched-drag');
+      let dragEvents = schedEvents.map((ev) => ({
+        ...ev,
+        locked: ev.resourceId !== 'room-a', // only Room A events are editable
+      }));
+      schedDrag.resources = schedResources;
+      schedDrag.events = dragEvents;
+      schedDrag.eventActions = [{ label: 'Edit' }, { label: 'Delete', type: 'danger' }];
+
+      schedDrag.addEventListener('cal:event-move', (e) => {
+        const { event: movedEvent, from, to } = e.detail;
+        dragEvents = dragEvents.map((ev) => {
+          if (ev.id === movedEvent.id) {
+            return { ...ev, start: to.date, end: to.date, startTime: to.startTime, endTime: to.endTime, resourceId: to.resourceId || ev.resourceId };
+          }
+          return ev;
+        });
+        schedDrag.events = dragEvents;
+        document.getElementById('output-sched-drag').textContent =
+          'Moved "' + movedEvent.title + '" to ' + to.date + ' ' + to.startTime + '\u2013' + to.endTime;
+      });
+
+      schedDrag.addEventListener('cal:event-resize', (e) => {
+        const { event: resizedEvent, from, to } = e.detail;
+        dragEvents = dragEvents.map((ev) => {
+          if (ev.id === resizedEvent.id) {
+            return { ...ev, endTime: to.endTime };
+          }
+          return ev;
+        });
+        schedDrag.events = dragEvents;
+        document.getElementById('output-sched-drag').textContent =
+          'Resized "' + resizedEvent.title + '" to end at ' + to.endTime;
+      });
+
+      schedDrag.addEventListener('cal:event-click', (e) => {
+        document.getElementById('output-sched-drag').textContent =
+          'Event: "' + e.detail.event.title + '"';
+      });
+
+      // Venue booking workflow
+      const venueScheduler = document.getElementById('demo-venue');
+      const venueResources = [
+        { id: 'main-hall', name: 'Main Hall', color: 'blue', capacity: 200 },
+        { id: 'garden', name: 'Garden Terrace', color: 'green', capacity: 80 },
+        { id: 'lounge', name: 'VIP Lounge', color: 'orange', capacity: 30 },
+      ];
+      let venueBookings = [
+        { id: 'v1', resourceId: 'main-hall', start: dayOffset(0), end: dayOffset(0), startTime: '10:00', endTime: '13:00', title: 'Wedding Reception', color: 'blue', metadata: { client: 'Johnson' } },
+        { id: 'v2', resourceId: 'garden', start: dayOffset(0), end: dayOffset(0), startTime: '14:00', endTime: '17:00', title: 'Corporate Mixer', color: 'green', metadata: { client: 'Acme Corp' } },
+        { id: 'v3', resourceId: 'lounge', start: dayOffset(1), end: dayOffset(1), startTime: '18:00', endTime: '21:00', title: 'Birthday Party', color: 'orange', metadata: { client: 'Smith' } },
+        { id: 'v4', resourceId: 'main-hall', start: dayOffset(2), end: dayOffset(2), startTime: '09:00', endTime: '12:00', title: 'Conference', color: 'blue', metadata: { client: 'TechCo' } },
+        { id: 'v5', resourceId: 'garden', start: dayOffset(3), end: dayOffset(3), startTime: '11:00', endTime: '15:00', title: 'Brunch Event', color: 'green', metadata: { client: 'FoodFest' } },
+      ];
+      venueScheduler.resources = venueResources;
+      venueScheduler.events = venueBookings;
+      venueScheduler.eventActions = [{ label: 'Edit' }, { label: 'Cancel Booking', type: 'danger' }];
+      venueScheduler.eventContent = (event, resource) => {
+        const el = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = event.title || '';
+        title.style.fontSize = '11px';
+        el.appendChild(title);
+        if (event.metadata?.client) {
+          const client = document.createElement('div');
+          client.style.fontSize = '10px';
+          client.style.opacity = '0.8';
+          client.textContent = event.metadata.client;
+          el.appendChild(client);
+        }
+        return el;
+      };
+
+      let venueCounter = 10;
+
+      venueScheduler.addEventListener('cal:fab-create', (e) => {
+        document.getElementById('output-venue').textContent =
+          'FAB clicked — open your booking form for ' + e.detail.date;
+      });
+
+      venueScheduler.addEventListener('cal:event-move', (e) => {
+        const { event: movedEvent, from, to } = e.detail;
+        venueBookings = venueBookings.map((ev) => {
+          if (ev.id === movedEvent.id) {
+            return { ...ev, start: to.date, end: to.date, startTime: to.startTime, endTime: to.endTime, resourceId: to.resourceId || ev.resourceId };
+          }
+          return ev;
+        });
+        venueScheduler.events = venueBookings;
+        document.getElementById('output-venue').textContent =
+          'Moved "' + movedEvent.title + '" to ' + to.date + ' ' + to.startTime + '\u2013' + to.endTime;
+      });
+
+      venueScheduler.addEventListener('cal:event-resize', (e) => {
+        const { event: resizedEvent, from, to } = e.detail;
+        venueBookings = venueBookings.map((ev) => {
+          if (ev.id === resizedEvent.id) {
+            return { ...ev, endTime: to.endTime };
+          }
+          return ev;
+        });
+        venueScheduler.events = venueBookings;
+        document.getElementById('output-venue').textContent =
+          'Resized "' + resizedEvent.title + '" to end at ' + to.endTime;
+      });
+
+      venueScheduler.addEventListener('cal:slot-create', (e) => {
+        const d = e.detail;
+        const resource = venueResources.find((r) => r.id === d.resourceId);
+        const newBooking = {
+          id: 'v' + (++venueCounter),
+          resourceId: d.resourceId || 'main-hall',
+          start: d.date,
+          end: d.date,
+          startTime: d.startTime,
+          endTime: d.endTime,
+          title: 'New Booking',
+          color: resource?.color || 'blue',
+        };
+        venueBookings = [...venueBookings, newBooking];
+        venueScheduler.events = venueBookings;
+        document.getElementById('output-venue').textContent =
+          'Booked: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime + (resource ? ' at ' + resource.name : '');
+      });
+
+      venueScheduler.addEventListener('cal:event-action', (e) => {
+        if (e.detail.action === 'Cancel Booking') {
+          venueBookings = venueBookings.filter((ev) => ev.id !== e.detail.event.id);
+          venueScheduler.events = venueBookings;
+          document.getElementById('output-venue').textContent =
+            'Cancelled: "' + e.detail.event.title + '"';
+        } else {
+          document.getElementById('output-venue').textContent =
+            'Action: "' + e.detail.action + '" on "' + e.detail.event.title + '"';
+        }
+      });
+
+      venueScheduler.addEventListener('cal:slot-select', (e) => {
+        const d = e.detail;
+        if (d.startTime) {
+          document.getElementById('output-venue').textContent =
+            'Selected: ' + d.date + ' ' + d.startTime + '\u2013' + d.endTime + ' — click + to book';
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>
