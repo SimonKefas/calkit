@@ -3,15 +3,19 @@
 > Vanilla JS web component library for date pickers, time pickers, booking calendars, and resource schedulers.
 
 Package: calkit
-Version: 0.1.0
+Version: 0.2.0
 Tags: <cal-datepicker>, <cal-timepicker>, <cal-booking>, <cal-scheduler>
 Install (CDN script tag): <script src="https://cdn.jsdelivr.net/npm/calkit/dist/calkit.umd.js"></script>
 Install (Bundler ESM): import { CalDatepicker, CalBooking, CalTimepicker, CalScheduler } from 'calkit';
+TypeScript: Types included — import type { CalDatepicker, Booking, SchedulerEvent, ... } from 'calkit';
 
 All date strings use "YYYY-MM-DD" format.
 All time strings use "HH:MM" 24h format.
 All color tokens use raw HSL channels consumed as hsl(var(--cal-...)).
 All events are CustomEvents with { bubbles: true, composed: true }.
+All components support a `locale` attribute (BCP 47 tag, e.g. "nb-NO", "de", "ja") for localized month names, weekday labels, and UI strings via the browser Intl API.
+All components have a `clear()` method that resets selection state and emits a change event with null.
+Time utilities support end times that wrap past midnight (e.g. start-time="22:00" end-time="02:00").
 
 ---
 
@@ -31,7 +35,7 @@ Extends: CalendarBase → HTMLElement
 - max-date: string | null (default: null) — "YYYY-MM-DD" latest selectable date
 - disabled-dates: string | null (default: null) — comma-separated "YYYY-MM-DD" list
 - first-day: number (default: 0) — 0=Sunday, 1=Monday, ..., 6=Saturday
-- locale: string | null (default: null)
+- locale: string | null (default: null) — BCP 47 locale tag (e.g. "nb-NO", "de", "ja"). Localizes month names, weekday labels, preset labels, and formatted dates via browser Intl API.
 - presets: string | null (default: null) — comma-separated keys: "today", "this-week", "next-7", "next-30"
 - placeholder: string (default: "Select date") — popover trigger text
 - dual: boolean attribute (default: absent) — show two months side-by-side in range mode
@@ -46,6 +50,7 @@ Extends: CalendarBase → HTMLElement
 
 - open(): void — open popover (popover display only)
 - close(): void — close popover
+- clear(): void — reset all selections, emits cal:change with {value: null}
 - goToMonth(month: number, year: number): void — month is 0-indexed (0=Jan, 11=Dec)
 - showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
 - clearStatus(): void
@@ -56,6 +61,7 @@ Extends: CalendarBase → HTMLElement
   - mode="single": detail = {value: string} — "YYYY-MM-DD"
   - mode="range": detail = {value: {start: string, end: string}}
   - mode="multi": detail = {value: string[]} — sorted array of "YYYY-MM-DD"
+  - clear(): detail = {value: null}
 - cal:month-change — detail = {year: number, month: number}
 - cal:open — detail = {}
 - cal:close — detail = {}
@@ -71,13 +77,15 @@ Extends: CalendarBase → HTMLElement
 ### Example
 
 ```html
-<cal-datepicker mode="range" dual presets="today,next-7,next-30" theme="light"></cal-datepicker>
+<cal-datepicker mode="range" dual presets="today,next-7,next-30" locale="nb-NO" theme="light"></cal-datepicker>
 <script>
   const el = document.querySelector('cal-datepicker');
   el.addEventListener('cal:change', (e) => {
     const { start, end } = e.detail.value;
     console.log(start, end);
   });
+  // Programmatic reset:
+  el.clear();
 </script>
 ```
 
@@ -102,6 +110,8 @@ Extends: CalendarBase → HTMLElement
 - value: string (single: "14:30", range: "09:00/12:00", multi: "09:00,10:30")
 - duration-labels: boolean attribute (default: absent) — show duration labels
 - loading: boolean attribute (default: absent)
+- locale: string | null (default: null) — BCP 47 locale tag
+- min-time: string | null (default: null) — "HH:MM", slots before this time are marked unavailable. Useful for constraining an "end time" picker based on a selected start time.
 
 ### JS Properties
 
@@ -114,6 +124,7 @@ Extends: CalendarBase → HTMLElement
 
 - open(): void — open popover
 - close(): void — close popover
+- clear(): void — reset selection, emits cal:time-change with {value: null}
 - showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
 - clearStatus(): void
 
@@ -123,6 +134,7 @@ Extends: CalendarBase → HTMLElement
   - mode="single": detail = {value: string} — "HH:MM"
   - mode="range": detail = {value: {start: string, end: string}}
   - mode="multi": detail = {value: string[]} — sorted array of "HH:MM"
+  - clear(): detail = {value: null}
 - cal:open — detail = {}
 - cal:close — detail = {}
 - cal:status — detail = {type: string|null, message: string|null}
@@ -137,6 +149,12 @@ Extends: CalendarBase → HTMLElement
     console.log(e.detail.value); // "14:00"
   });
 </script>
+
+<!-- Midnight wrapping: generates slots from 22:00 through 02:00 -->
+<cal-timepicker start-time="22:00" end-time="02:00" interval="30"></cal-timepicker>
+
+<!-- Constrain end-time picker to only show slots after 14:00 -->
+<cal-timepicker min-time="14:00"></cal-timepicker>
 ```
 
 ---
@@ -154,6 +172,7 @@ Extends: CalendarBase → HTMLElement
 - min-date: string | null (default: null)
 - max-date: string | null (default: null)
 - first-day: number (default: 0)
+- locale: string | null (default: null) — BCP 47 locale tag. Localizes month names, weekday labels, and formatted dates.
 - placeholder: string (default: "Select dates")
 - dual: boolean attribute (default: absent) — two month panels
 - show-labels-on-hover: boolean attribute (default: absent)
@@ -172,6 +191,7 @@ Extends: CalendarBase → HTMLElement
 - dayData: Record<string, {label?: string, status?: string}> — static per-date metadata (default: {})
 - labelFormula: ((dateStr: string) => {label?: string, status?: string} | null) | null — dynamic labels (highest priority, default: null)
 - timeSlots: Array<{time: string, label?: string, available?: boolean}> | null — custom time slots (default: null)
+- colors: Array<{name: string, bg: string, fg: string, hover?: string}> | null — custom booking color palettes (default: null). Values are raw HSL channels (e.g. "120 100% 50%"). Registered as CSS custom properties and merged into the color map so bookings can reference them by name.
 - loading: boolean — read/write
 
 ### Booking Object Shape
@@ -182,7 +202,7 @@ Extends: CalendarBase → HTMLElement
   start: string,           // "YYYY-MM-DD" — first day of booking
   end: string,             // "YYYY-MM-DD" — last day (checkout day)
   label?: string,          // displayed on hover / in cell
-  color?: "blue" | "green" | "red" | "orange" | "gray"   // default: "blue"
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string   // default: "blue". String can be any custom color name registered via colors property.
 }
 ```
 
@@ -196,13 +216,14 @@ Extends: CalendarBase → HTMLElement
 
 - open(): void
 - close(): void
+- clear(): void — reset date/time selections, emits cal:change with {value: null}
 - goToMonth(month: number, year: number): void
 - showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
 - clearStatus(): void
 
 ### Events
 
-- cal:change — detail = {value: {start: string, end: string, startTime?: string, endTime?: string}}
+- cal:change — detail = {value: {start: string, end: string, startTime?: string, endTime?: string}} or {value: null} on clear()
 - cal:selection-invalid — detail = {start: string, end: string} — fires when selection overlaps booking
 - cal:month-change — detail = {year: number, month: number}
 - cal:open — detail = {}
@@ -221,12 +242,19 @@ Same-day boundaries are disallowed: a selection ending on a booking start date, 
 ### Example
 
 ```html
-<cal-booking theme="light" dual time-slots time-format="12h"></cal-booking>
+<cal-booking theme="light" dual time-slots time-format="12h" locale="nb-NO"></cal-booking>
 <script>
   const el = document.querySelector('cal-booking');
+
+  // Register custom colors beyond the 5 built-in palettes
+  el.colors = [
+    { name: 'neon', bg: '120 100% 50%', fg: '120 100% 10%', hover: '120 100% 45%' },
+    { name: 'purple', bg: '270 60% 60%', fg: '0 0% 100%', hover: '270 60% 55%' },
+  ];
+
   el.bookings = [
     { id: '1', start: '2026-03-05', end: '2026-03-10', label: 'Alice', color: 'blue' },
-    { id: '2', start: '2026-03-10', end: '2026-03-15', label: 'Bob', color: 'green' },
+    { id: '2', start: '2026-03-10', end: '2026-03-15', label: 'Bob', color: 'neon' },   // custom color
   ];
   el.labelFormula = (date) => {
     const d = new Date(date);
@@ -236,6 +264,9 @@ Same-day boundaries are disallowed: a selection ending on a booking start date, 
     console.log(e.detail.value);
     // { start: "2026-03-16", end: "2026-03-20", startTime: "14:00", endTime: "11:00" }
   });
+
+  // Programmatic reset:
+  el.clear();
 </script>
 ```
 
@@ -266,6 +297,7 @@ Extends: CalendarBase → HTMLElement
 - snap-interval: number | null (default: null, falls back to interval) — drag snap granularity in minutes
 - min-duration: number | null (default: null, falls back to snap interval) — minimum event duration in minutes
 - max-duration: number | null (default: null, no limit) — maximum event duration in minutes
+- locale: string | null (default: null) — BCP 47 locale tag. Localizes navigation title, "Today" button, and Day/Week/Month view tab labels.
 - loading: boolean attribute (default: absent)
 
 ### JS Properties
@@ -274,6 +306,7 @@ Extends: CalendarBase → HTMLElement
 - events: Event[] — default: []
 - eventActions: EventAction[] — default: []
 - eventContent: ((event: Event, resource: Resource) => HTMLElement | string) | null — custom renderer (default: null)
+- colors: Array<{name: string, bg: string, fg: string, hover?: string}> | null — custom event color palettes (default: null). Same format as cal-booking colors.
 - value: {date: string, startTime: string, endTime: string, resourceId: string, resource: Resource} | null — read-only, last selected slot
 - loading: boolean — read/write
 
@@ -288,7 +321,7 @@ Extends: CalendarBase → HTMLElement
   startTime?: string,          // "HH:MM" — omit for all-day events
   endTime?: string,            // "HH:MM" — omit for all-day events
   resourceId?: string,         // links to Resource.id
-  color?: "blue" | "green" | "red" | "orange" | "gray",  // default: "blue"
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string,  // default: "blue". String can be any custom color name registered via colors property.
   locked?: boolean,            // prevents drag move/resize (default: false)
   metadata?: Record<string, string | number>   // shown in detail popover
 }
@@ -303,7 +336,7 @@ All-day events: omit startTime and endTime. Rendered in collapsible all-day row 
   id: string,
   name: string,
   capacity?: number,
-  color?: "blue" | "green" | "red" | "orange" | "gray"
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string   // custom color name via colors property
 }
 ```
 
@@ -325,6 +358,7 @@ All-day events: omit startTime and endTime. Rendered in collapsible all-day row 
 - prev(): void — go back by 1 day/week/month
 - findAvailableSlot(opts: {date?: string, duration: number, resourceId?: string, minCapacity?: number}): {resourceId: string, date: string, startTime: string, endTime: string} | null — searches up to 14 days
 - isSlotAvailable(date: string, startTime: string, endTime: string, resourceId: string): boolean — checks for time overlap with existing events
+- clear(): void — reset selected slot and close any open detail popover
 - showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
 - clearStatus(): void
 
@@ -386,10 +420,17 @@ Locked events (event.locked = true) cannot be moved or resized. They display a l
   show-fab
   resource-mode="tabs"
   format="12h"
+  locale="nb-NO"
   theme="light"
 ></cal-scheduler>
 <script>
   const sched = document.querySelector('cal-scheduler');
+
+  // Register custom colors
+  sched.colors = [
+    { name: 'purple', bg: '270 60% 60%', fg: '0 0% 100%', hover: '270 60% 55%' },
+  ];
+
   sched.resources = [
     { id: 'r1', name: 'Room A', capacity: 10 },
     { id: 'r2', name: 'Room B', capacity: 20 },
@@ -438,6 +479,7 @@ All components extend CalendarBase → HTMLElement.
 
 ### Inherited Methods
 
+- clear(): void — resets selection state. Each component overrides with specific reset logic and emits its change event with null.
 - showStatus(type: "error"|"warning"|"info"|"success", message: string, opts?: {autoDismiss?: number, dismissible?: boolean}): void
   Shows an inline status banner. autoDismiss is milliseconds.
 - clearStatus(): void — clears the banner, emits cal:status with null values
@@ -524,7 +566,7 @@ cal-scheduler {
   startTime?: string,                      // "HH:MM" — omit for all-day
   endTime?: string,                        // "HH:MM" — omit for all-day
   resourceId?: string,
-  color?: "blue" | "green" | "red" | "orange" | "gray",
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string,  // custom color name via colors property
   locked?: boolean,
   metadata?: Record<string, string | number>
 }
@@ -537,7 +579,7 @@ cal-scheduler {
   id: string,
   name: string,
   capacity?: number,
-  color?: "blue" | "green" | "red" | "orange" | "gray"
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string   // custom color name via colors property
 }
 ```
 
@@ -549,9 +591,22 @@ cal-scheduler {
   start: string,
   end: string,
   label?: string,
-  color?: "blue" | "green" | "red" | "orange" | "gray"
+  color?: "blue" | "green" | "red" | "orange" | "gray" | string   // custom color name via colors property
 }
 ```
+
+### CustomColor
+
+```
+{
+  name: string,            // color palette name (e.g. "purple", "neon")
+  bg: string,              // raw HSL channels for background (e.g. "270 60% 60%")
+  fg: string,              // raw HSL channels for foreground text (e.g. "0 0% 100%")
+  hover?: string           // raw HSL channels for hover state (optional, auto-derived if omitted)
+}
+```
+
+Set via `colors` property on cal-booking and cal-scheduler. Registered as CSS custom properties (`--cal-booking-{name}-bg`, etc.) and merged into the built-in color map.
 
 ### TimeSlot
 
