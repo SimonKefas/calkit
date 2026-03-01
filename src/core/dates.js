@@ -1,3 +1,4 @@
+/** Backward-compat English month names. */
 export const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -8,21 +9,83 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 const SHORT_DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
- * Get the full or short day name for a date string.
+ * Get localized month names (long form).
+ * @param {string} [locale] - BCP 47 locale tag
+ * @returns {string[]} 12 month names
+ */
+export function getMonthNames(locale) {
+  if (!locale) return MONTH_NAMES;
+  try {
+    const fmt = new Intl.DateTimeFormat(locale, { month: 'long' });
+    return Array.from({ length: 12 }, (_, i) => {
+      const name = fmt.format(new Date(2024, i, 1));
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+  } catch (e) {
+    return MONTH_NAMES;
+  }
+}
+
+/**
+ * Get localized short month names (3-letter or locale equivalent).
+ * @param {string} [locale] - BCP 47 locale tag
+ * @returns {string[]} 12 short month names
+ */
+export function getShortMonthNames(locale) {
+  if (!locale) {
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  }
+  try {
+    const fmt = new Intl.DateTimeFormat(locale, { month: 'short' });
+    return Array.from({ length: 12 }, (_, i) => {
+      const name = fmt.format(new Date(2024, i, 1));
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+  } catch (e) {
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  }
+}
+
+/**
+ * Get the full or short day name for a date string, with optional locale.
  * @param {string} dateStr - ISO date string
  * @param {'long'|'short'} format
+ * @param {string} [locale] - BCP 47 locale tag
  * @returns {string}
  */
-export function getDayName(dateStr, format = 'short') {
+export function getDayName(dateStr, format = 'short', locale) {
   const d = parseDate(dateStr);
   if (!d) return '';
+  if (locale) {
+    try {
+      return new Intl.DateTimeFormat(locale, { weekday: format }).format(d);
+    } catch (e) { /* fall through */ }
+  }
   return format === 'long' ? DAY_NAMES[d.getDay()] : SHORT_DAY_NAMES[d.getDay()];
 }
 
 /**
- * Returns weekday labels starting from `firstDay` (0 = Sunday).
+ * Returns weekday labels starting from `firstDay` (0 = Sunday), with optional locale.
+ * @param {number} firstDay - 0=Sun, 1=Mon, etc.
+ * @param {string} [locale] - BCP 47 locale tag
+ * @returns {string[]}
  */
-export function getWeekdayLabels(firstDay = 0) {
+export function getWeekdayLabels(firstDay = 0, locale) {
+  if (locale) {
+    try {
+      const fmt = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+      const labels = [];
+      // Use a known Sunday (Jan 7 2024) as reference
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(2024, 0, 7 + ((firstDay + i) % 7));
+        const label = fmt.format(d);
+        labels.push(label.charAt(0).toUpperCase() + label.slice(1));
+      }
+      return labels;
+    } catch (e) { /* fall through */ }
+  }
   const labels = [];
   for (let i = 0; i < 7; i++) {
     labels.push(SHORT_WEEKDAYS[(firstDay + i) % 7]);

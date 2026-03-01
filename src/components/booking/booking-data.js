@@ -13,8 +13,28 @@ export const BOOKING_COLORS = {
 
 const DEFAULT_COLOR = 'blue';
 
-function getColorTokens(colorName) {
+function getColorTokens(colorName, customColors) {
+  if (customColors && customColors[colorName]) return customColors[colorName];
   return BOOKING_COLORS[colorName] || BOOKING_COLORS[DEFAULT_COLOR];
+}
+
+/**
+ * Merge custom color definitions into a color map.
+ * @param {Array<{name: string, bg: string, fg: string, hover?: string}>} customs
+ * @returns {Object} Extended color map
+ */
+export function mergeCustomColors(customs) {
+  if (!Array.isArray(customs) || !customs.length) return null;
+  const map = {};
+  for (const c of customs) {
+    if (!c.name || !c.bg || !c.fg) continue;
+    map[c.name] = {
+      bg: c.bg,
+      fg: c.fg,
+      hover: c.hover || c.bg,
+    };
+  }
+  return Object.keys(map).length ? map : null;
 }
 
 /**
@@ -26,9 +46,10 @@ function getColorTokens(colorName) {
  * @param {Array} bookings - array of { id, start, end, label, color }
  * @param {Object} dayData - map of dateStr → { label, status }
  * @param {Function|null} labelFormula - (dateStr) => { label, status }
+ * @param {Object|null} customColors - custom color map from mergeCustomColors()
  * @returns {{ status, label, checkoutBooking, checkinBooking, halfDay, colorOut, colorIn, colorFull }}
  */
-export function resolveCellData(dateStr, bookings = [], dayData = {}, labelFormula = null) {
+export function resolveCellData(dateStr, bookings = [], dayData = {}, labelFormula = null, customColors = null) {
   // Find bookings that touch this date
   const checkoutBooking = bookings.find((b) => b.end === dateStr);
   const checkinBooking = bookings.find((b) => b.start === dateStr);
@@ -48,19 +69,19 @@ export function resolveCellData(dateStr, bookings = [], dayData = {}, labelFormu
     // Half-day: one booking ends, another begins
     status = 'half-day';
     halfDay = true;
-    colorOut = getColorTokens(checkoutBooking.color || DEFAULT_COLOR);
-    colorIn = getColorTokens(checkinBooking.color || DEFAULT_COLOR);
+    colorOut = getColorTokens(checkoutBooking.color || DEFAULT_COLOR, customColors);
+    colorIn = getColorTokens(checkinBooking.color || DEFAULT_COLOR, customColors);
   } else if (spanningBooking) {
     status = 'booked';
-    colorFull = getColorTokens(spanningBooking.color || DEFAULT_COLOR);
+    colorFull = getColorTokens(spanningBooking.color || DEFAULT_COLOR, customColors);
   } else if (checkinBooking && !checkoutBooking) {
     // First day of a booking — only the incoming triangle is filled
     status = 'checkin-only';
-    colorIn = getColorTokens(checkinBooking.color || DEFAULT_COLOR);
+    colorIn = getColorTokens(checkinBooking.color || DEFAULT_COLOR, customColors);
   } else if (checkoutBooking && !checkinBooking) {
     // Last day of a booking (checkout day — could be selectable as checkout boundary)
     status = 'checkout-only';
-    colorOut = getColorTokens(checkoutBooking.color || DEFAULT_COLOR);
+    colorOut = getColorTokens(checkoutBooking.color || DEFAULT_COLOR, customColors);
   }
 
   // Override with dayData (static)

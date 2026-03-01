@@ -1,13 +1,45 @@
 import { today, toDateString } from '../../core/dates.js';
 
+/** Default English labels for presets. */
+const PRESET_LABELS = {
+  today: 'Today',
+  'this-week': 'This Week',
+  'next-7': 'Next 7 Days',
+  'next-30': 'Next 30 Days',
+};
+
+/**
+ * Get a localized preset label using Intl.RelativeTimeFormat when available.
+ * Falls back to English.
+ * @param {string} key - preset key
+ * @param {string} [locale] - BCP 47 locale tag
+ * @returns {string}
+ */
+function getPresetLabel(key, locale) {
+  if (!locale) return PRESET_LABELS[key] || key;
+  // Use Intl.DisplayNames isn't applicable, so use a simple approach:
+  // For "today", use Intl.RelativeTimeFormat. For others, keep English fallback
+  // but capitalize per locale conventions.
+  try {
+    if (key === 'today') {
+      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+      const parts = rtf.formatToParts(0, 'day');
+      const label = parts.map((p) => p.value).join('');
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+  } catch (e) { /* fall through */ }
+  return PRESET_LABELS[key] || key;
+}
+
 /**
  * Returns an array of built-in preset definitions.
+ * @param {string} [locale] - BCP 47 locale tag
  */
-export function getBuiltinPresets() {
+export function getBuiltinPresets(locale) {
   return [
     {
       key: 'today',
-      label: 'Today',
+      label: getPresetLabel('today', locale),
       resolve() {
         const t = today();
         return { start: t, end: t };
@@ -15,7 +47,7 @@ export function getBuiltinPresets() {
     },
     {
       key: 'this-week',
-      label: 'This Week',
+      label: getPresetLabel('this-week', locale),
       resolve() {
         const now = new Date();
         const day = now.getDay();
@@ -28,7 +60,7 @@ export function getBuiltinPresets() {
     },
     {
       key: 'next-7',
-      label: 'Next 7 Days',
+      label: getPresetLabel('next-7', locale),
       resolve() {
         const start = new Date();
         const end = new Date();
@@ -38,7 +70,7 @@ export function getBuiltinPresets() {
     },
     {
       key: 'next-30',
-      label: 'Next 30 Days',
+      label: getPresetLabel('next-30', locale),
       resolve() {
         const start = new Date();
         const end = new Date();
@@ -54,13 +86,14 @@ export function getBuiltinPresets() {
  * @param {object} options
  * @param {string[]} options.presetKeys - which presets to show (e.g. ['today', 'next-7'])
  * @param {function} options.onSelect - called with { start, end }
+ * @param {string} [options.locale] - BCP 47 locale tag
  * @returns {HTMLElement}
  */
-export function renderPresets({ presetKeys, onSelect }) {
+export function renderPresets({ presetKeys, onSelect, locale }) {
   const container = document.createElement('div');
   container.classList.add('cal-presets');
 
-  const builtins = getBuiltinPresets();
+  const builtins = getBuiltinPresets(locale);
   const presets = presetKeys
     .map((key) => builtins.find((p) => p.key === key))
     .filter(Boolean);

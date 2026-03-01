@@ -47,6 +47,9 @@ export class CalendarBase extends HTMLElement {
   /** Subclasses override to update Shadow DOM. */
   render() {}
 
+  /** Reset selection state. Subclasses should override with specific logic. */
+  clear() {}
+
   /** Dispatch a composed, bubbling custom event. */
   emit(name, detail = {}) {
     this.dispatchEvent(

@@ -1,4 +1,4 @@
-import { MONTH_NAMES } from '../../core/dates.js';
+import { getMonthNames } from '../../core/dates.js';
 
 export const chevronLeft = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>`;
 export const chevronRight = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>`;
@@ -11,9 +11,10 @@ export const chevronRight = `<svg width="16" height="16" viewBox="0 0 16 16" fil
  * @param {function} options.onPrev
  * @param {function} options.onNext
  * @param {function} [options.onTitleClick] - If provided, title becomes a clickable button
+ * @param {string} [options.locale] - BCP 47 locale tag
  * @returns {HTMLElement}
  */
-export function renderNavigation({ year, month, onPrev, onNext, onTitleClick }) {
+export function renderNavigation({ year, month, onPrev, onNext, onTitleClick, locale }) {
   const nav = document.createElement('div');
   nav.classList.add('cal-nav');
 
@@ -23,16 +24,17 @@ export function renderNavigation({ year, month, onPrev, onNext, onTitleClick }) 
   prevBtn.setAttribute('aria-label', 'Previous month');
   prevBtn.addEventListener('click', onPrev);
 
+  const months = getMonthNames(locale);
   const titleTag = onTitleClick ? 'button' : 'div';
   const title = document.createElement(titleTag);
   title.classList.add('cal-nav__title');
   if (onTitleClick) {
     title.classList.add('cal-nav__title--interactive');
-    title.setAttribute('aria-label', `Select month and year, currently ${MONTH_NAMES[month]} ${year}`);
+    title.setAttribute('aria-label', `Select month and year, currently ${months[month]} ${year}`);
     title.addEventListener('click', onTitleClick);
   }
   title.setAttribute('aria-live', 'polite');
-  title.textContent = `${MONTH_NAMES[month]} ${year}`;
+  title.textContent = `${months[month]} ${year}`;
 
   const nextBtn = document.createElement('button');
   nextBtn.classList.add('cal-nav__btn', 'cal-nav__btn--next');

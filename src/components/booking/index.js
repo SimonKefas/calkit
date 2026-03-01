@@ -1,7 +1,7 @@
 import { CalendarBase } from '../../core/base-component.js';
 import { createStore } from '../../core/state.js';
 import {
-  today, parseDate, toDateString, isSameDay, addMonths, MONTH_NAMES,
+  today, parseDate, toDateString, isSameDay, addMonths, getMonthNames, getShortMonthNames,
 } from '../../core/dates.js';
 import { generateSlots, generateDurationSlots } from '../../core/times.js';
 import { tokens } from '../../styles/tokens.js';
@@ -12,7 +12,7 @@ import { renderMonthYearPicker, monthYearPickerStyles } from '../datepicker/mont
 import { createPopover, popoverStyles } from '../datepicker/popover.js';
 import { renderCalendarGrid, calendarGridStyles } from '../datepicker/calendar-grid.js';
 import { renderTimeGrid, timeGridStyles } from '../timepicker/time-grid.js';
-import { isSelectionValid } from './booking-data.js';
+import { isSelectionValid, mergeCustomColors } from './booking-data.js';
 import { renderTimeGridSkeleton, renderCalendarGridSkeleton, loadingSkeletonStyles } from '../shared/loading-skeleton.js';
 import { renderStatusMessage, statusMessageStyles } from '../shared/status-message.js';
 
@@ -61,7 +61,7 @@ export class CalBooking extends CalendarBase {
 
   static get observedAttributes() {
     return [
-      'theme', 'display', 'min-date', 'max-date', 'first-day',
+      'theme', 'display', 'min-date', 'max-date', 'first-day', 'locale',
       'placeholder', 'dual', 'show-labels-on-hover',
       'time-slots', 'time-start', 'time-end', 'time-interval', 'time-format',
       'duration-labels', 'loading',
@@ -96,6 +96,8 @@ export class CalBooking extends CalendarBase {
     this._bookings = [];
     this._dayData = {};
     this._labelFormula = null;
+    this._colors = null;
+    this._customColorMap = null;
     this._timeSlots = null; // explicit slot definitions
     this._popover = null;
     this._unsubscribe = null;
@@ -108,6 +110,7 @@ export class CalBooking extends CalendarBase {
   get firstDay() { return parseInt(this.getAttribute('first-day') || '0', 10); }
   get minDate() { return this.getAttribute('min-date') || null; }
   get maxDate() { return this.getAttribute('max-date') || null; }
+  get locale() { return this.getAttribute('locale') || undefined; }
   get showLabelsOnHover() { return this.hasAttribute('show-labels-on-hover'); }
   get timeSlotsEnabled() { return this.hasAttribute('time-slots'); }
   get timeStartTime() { return this.getAttribute('time-start') || '09:00'; }
@@ -140,6 +143,21 @@ export class CalBooking extends CalendarBase {
   get timeSlots() { return this._timeSlots; }
   set timeSlots(val) {
     this._timeSlots = Array.isArray(val) ? val : null;
+    if (this._initialized) this.render();
+  }
+
+  get colors() { return this._colors; }
+  set colors(val) {
+    this._colors = Array.isArray(val) ? val : null;
+    this._customColorMap = mergeCustomColors(this._colors);
+    // Inject CSS custom properties for custom colors
+    if (this._customColorMap) {
+      for (const [name, tokens] of Object.entries(this._customColorMap)) {
+        this.style.setProperty(`--cal-booking-${name}-bg`, tokens.bg);
+        this.style.setProperty(`--cal-booking-${name}-fg`, tokens.fg);
+        this.style.setProperty(`--cal-booking-${name}-hover`, tokens.hover);
+      }
+    }
     if (this._initialized) this.render();
   }
 
@@ -436,6 +454,18 @@ export class CalBooking extends CalendarBase {
     this._store.set({ viewYear: year, viewMonth: month });
   }
 
+  clear() {
+    this._store.set({
+      rangeStart: null,
+      rangeEnd: null,
+      hoverDate: null,
+      startTime: null,
+      endTime: null,
+      timeSelectPhase: null,
+    });
+    this.emit('cal:change', { value: null });
+  }
+
   // -- Time slots generation --
   _getTimeSlotArray() {
     if (this._timeSlots) {
@@ -504,6 +534,7 @@ export class CalBooking extends CalendarBase {
           onPrev: state.pickingMonth ? () => {} : () => this._prevMonth(),
           onNext: state.pickingMonth ? () => {} : () => { if (!showDual) this._nextMonth(); },
           onTitleClick: () => this._toggleMonthPicker(),
+          locale: this.locale,
         }));
       }
 
@@ -512,6 +543,7 @@ export class CalBooking extends CalendarBase {
           year, month,
           onPrev: () => {},
           onNext: () => this._nextMonth(),
+          locale: this.locale,
         }));
       }
 
@@ -525,6 +557,7 @@ export class CalBooking extends CalendarBase {
           onYearPrev: () => this._store.set({ pickerYear: state.pickerYear - 1 }),
           onYearNext: () => this._store.set({ pickerYear: state.pickerYear + 1 }),
           onClose: () => this._store.set({ pickingMonth: false }),
+          locale: this.locale,
         });
         monthEl.appendChild(picker);
       } else {
@@ -551,6 +584,8 @@ export class CalBooking extends CalendarBase {
           dayData: this._dayData,
           labelFormula: this._labelFormula,
           showLabelsOnHover: this.showLabelsOnHover,
+          locale: this.locale,
+          customColors: this._customColorMap,
         });
 
         if (animClass) grid.classList.add(animClass);
@@ -608,7 +643,13 @@ export class CalBooking extends CalendarBase {
   _formatShortDate(dateStr) {
     const d = parseDate(dateStr);
     if (!d) return dateStr;
-    return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
+    if (this.locale) {
+      try {
+        return new Intl.DateTimeFormat(this.locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+      } catch (e) { /* fall through */ }
+    }
+    const months = getShortMonthNames(this.locale);
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   }
 
   render() {

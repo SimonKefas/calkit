@@ -13,9 +13,10 @@ import { chevronLeft, chevronRight } from '../datepicker/navigation.js';
  * @param {function} options.onNext
  * @param {function} options.onToday
  * @param {function} options.onViewChange - called with new view string
+ * @param {string} [options.locale] - BCP 47 locale tag
  * @returns {HTMLElement}
  */
-export function renderSchedulerNav({ title, view, onPrev, onNext, onToday, onViewChange }) {
+export function renderSchedulerNav({ title, view, onPrev, onNext, onToday, onViewChange, locale }) {
   const nav = document.createElement('div');
   nav.classList.add('cal-sched-nav');
 
@@ -35,9 +36,19 @@ export function renderSchedulerNav({ title, view, onPrev, onNext, onToday, onVie
   nextBtn.setAttribute('aria-label', 'Next');
   nextBtn.addEventListener('click', onNext);
 
+  let todayLabel = 'Today';
+  if (locale) {
+    try {
+      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+      const parts = rtf.formatToParts(0, 'day');
+      const label = parts.map((p) => p.value).join('');
+      todayLabel = label.charAt(0).toUpperCase() + label.slice(1);
+    } catch (e) { /* keep English */ }
+  }
+
   const todayBtn = document.createElement('button');
   todayBtn.classList.add('cal-sched-nav__today');
-  todayBtn.textContent = 'Today';
+  todayBtn.textContent = todayLabel;
   todayBtn.addEventListener('click', onToday);
 
   const titleEl = document.createElement('span');
@@ -54,11 +65,23 @@ export function renderSchedulerNav({ title, view, onPrev, onNext, onToday, onVie
   const tabs = document.createElement('div');
   tabs.classList.add('cal-sched-nav__tabs');
 
+  // Localize view tab labels using Intl.DisplayNames for date fields when available
+  const viewLabels = { day: 'Day', week: 'Week', month: 'Month' };
+  if (locale) {
+    try {
+      const dtf = new Intl.DisplayNames(locale, { type: 'dateTimeField' });
+      for (const key of ['day', 'week', 'month']) {
+        const label = dtf.of(key);
+        if (label) viewLabels[key] = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+    } catch (e) { /* keep English */ }
+  }
+
   for (const v of ['day', 'week', 'month']) {
     const tab = document.createElement('button');
     tab.classList.add('cal-sched-nav__tab');
     if (v === view) tab.classList.add('cal-sched-nav__tab--active');
-    tab.textContent = v.charAt(0).toUpperCase() + v.slice(1);
+    tab.textContent = viewLabels[v];
     tab.addEventListener('click', () => onViewChange(v));
     tabs.appendChild(tab);
   }

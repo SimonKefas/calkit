@@ -1,12 +1,14 @@
 {
   "name": "calkit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vanilla JS web component library for date pickers, time pickers, booking calendars, and resource schedulers.",
   "type": "module",
   "main": "dist/calkit.umd.js",
   "module": "dist/calkit.es.js",
+  "types": "./dist/calkit.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/calkit.d.ts",
       "import": "./dist/calkit.es.js",
       "require": "./dist/calkit.umd.js"
     },
@@ -49,7 +51,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --config vite.datepicker.config.js && vite build --config vite.booking.config.js && vite build --config vite.timepicker.config.js && vite build --config vite.scheduler.config.js",
+    "build": "vite build && vite build --config vite.datepicker.config.js && vite build --config vite.booking.config.js && vite build --config vite.timepicker.config.js && vite build --config vite.scheduler.config.js && cp calkit.d.ts dist/calkit.d.ts",
     "preview": "vite preview"
   },
   "devDependencies": {

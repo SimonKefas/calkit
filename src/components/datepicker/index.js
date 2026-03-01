@@ -1,7 +1,7 @@
 import { CalendarBase } from '../../core/base-component.js';
 import { createStore } from '../../core/state.js';
 import {
-  today, parseDate, toDateString, isSameDay, addMonths, MONTH_NAMES,
+  today, parseDate, toDateString, isSameDay, addMonths, getMonthNames, getShortMonthNames,
 } from '../../core/dates.js';
 import { tokens } from '../../styles/tokens.js';
 import { reset } from '../../styles/reset.js';
@@ -80,6 +80,7 @@ export class CalDatepicker extends CalendarBase {
   get firstDay() { return parseInt(this.getAttribute('first-day') || '0', 10); }
   get minDate() { return this.getAttribute('min-date') || null; }
   get maxDate() { return this.getAttribute('max-date') || null; }
+  get locale() { return this.getAttribute('locale') || undefined; }
 
   get loading() { return this.hasAttribute('loading'); }
   set loading(val) { val ? this.setAttribute('loading', '') : this.removeAttribute('loading'); }
@@ -400,6 +401,16 @@ export class CalDatepicker extends CalendarBase {
     this._store.set({ viewYear: year, viewMonth: month });
   }
 
+  clear() {
+    this._store.set({
+      selectedDates: [],
+      rangeStart: null,
+      rangeEnd: null,
+      hoverDate: null,
+    });
+    this.emit('cal:change', { value: null });
+  }
+
   // -- Render --
   _renderCalendarContent() {
     const state = this._store.getState();
@@ -450,6 +461,7 @@ export class CalDatepicker extends CalendarBase {
           onPrev: state.pickingMonth ? () => {} : () => this._prevMonth(),
           onNext: state.pickingMonth ? () => {} : () => { if (!showDual) this._nextMonth(); },
           onTitleClick: () => this._toggleMonthPicker(),
+          locale: this.locale,
         }));
       }
 
@@ -458,6 +470,7 @@ export class CalDatepicker extends CalendarBase {
           year, month,
           onPrev: () => {},
           onNext: () => this._nextMonth(),
+          locale: this.locale,
         }));
       }
 
@@ -471,6 +484,7 @@ export class CalDatepicker extends CalendarBase {
           onYearPrev: () => this._store.set({ pickerYear: state.pickerYear - 1 }),
           onYearNext: () => this._store.set({ pickerYear: state.pickerYear + 1 }),
           onClose: () => this._store.set({ pickingMonth: false }),
+          locale: this.locale,
         });
         monthEl.appendChild(picker);
       } else {
@@ -494,6 +508,7 @@ export class CalDatepicker extends CalendarBase {
           focusedDate: state.focusedDate,
           onSelect: (d) => this._handleSelect(d),
           onHover: (d) => this._handleHover(d),
+          locale: this.locale,
         });
 
         if (animClass) grid.classList.add(animClass);
@@ -509,6 +524,7 @@ export class CalDatepicker extends CalendarBase {
       container.appendChild(renderPresets({
         presetKeys: this.presetKeys,
         onSelect: (range) => this._handlePresetSelect(range),
+        locale: this.locale,
       }));
     }
 
@@ -535,7 +551,13 @@ export class CalDatepicker extends CalendarBase {
   _formatShortDate(dateStr) {
     const d = parseDate(dateStr);
     if (!d) return dateStr;
-    return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
+    if (this.locale) {
+      try {
+        return new Intl.DateTimeFormat(this.locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+      } catch (e) { /* fall through */ }
+    }
+    const months = getShortMonthNames(this.locale);
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   }
 
   render() {

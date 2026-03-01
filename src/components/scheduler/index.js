@@ -8,6 +8,7 @@ import { today, addDays, parseDate, toDateString, addMonths } from '../../core/d
 import { timeToMinutes } from '../../core/times.js';
 import { getWeekDates, getViewTitle } from '../../core/scheduler-utils.js';
 import { findAvailableSlot, isSlotAvailable as _isSlotAvailable } from './scheduler-data.js';
+import { mergeCustomColors } from '../booking/booking-data.js';
 import { tokens } from '../../styles/tokens.js';
 import { reset } from '../../styles/reset.js';
 import { animations } from '../../styles/animations.js';
@@ -56,7 +57,7 @@ export class CalScheduler extends CalendarBase {
       'theme', 'view', 'layout', 'date', 'start-time', 'end-time',
       'interval', 'format', 'first-day', 'loading', 'slot-height',
       'resource-mode', 'show-event-time', 'show-fab', 'draggable-events',
-      'snap-interval', 'min-duration', 'max-duration',
+      'snap-interval', 'min-duration', 'max-duration', 'locale',
     ];
   }
 
@@ -85,6 +86,8 @@ export class CalScheduler extends CalendarBase {
     this._events = [];
     this._eventActions = [];
     this._eventContent = null;
+    this._colors = null;
+    this._customColorMap = null;
     this._unsubscribe = null;
     this._rendering = false;
     this._nowTimer = null;
@@ -109,6 +112,7 @@ export class CalScheduler extends CalendarBase {
   get snapInterval() { const v = this.getAttribute('snap-interval'); return v ? parseInt(v, 10) : null; }
   get minDuration() { const v = this.getAttribute('min-duration'); return v ? parseInt(v, 10) : null; }
   get maxDuration() { const v = this.getAttribute('max-duration'); return v ? parseInt(v, 10) : null; }
+  get locale() { return this.getAttribute('locale') || undefined; }
 
   // -- Properties --
   get resources() { return this._resources; }
@@ -132,6 +136,20 @@ export class CalScheduler extends CalendarBase {
   get eventContent() { return this._eventContent; }
   set eventContent(val) {
     this._eventContent = typeof val === 'function' ? val : null;
+    if (this._initialized) this.render();
+  }
+
+  get colors() { return this._colors; }
+  set colors(val) {
+    this._colors = Array.isArray(val) ? val : null;
+    this._customColorMap = mergeCustomColors(this._colors);
+    if (this._customColorMap) {
+      for (const [name, tokens] of Object.entries(this._customColorMap)) {
+        this.style.setProperty(`--cal-booking-${name}-bg`, tokens.bg);
+        this.style.setProperty(`--cal-booking-${name}-fg`, tokens.fg);
+        this.style.setProperty(`--cal-booking-${name}-hover`, tokens.hover);
+      }
+    }
     if (this._initialized) this.render();
   }
 
@@ -274,6 +292,15 @@ export class CalScheduler extends CalendarBase {
     return _isSlotAvailable(this._events, resourceId, date, startTime, endTime);
   }
 
+  clear() {
+    this._store.set({
+      selectedSlot: null,
+      detailEvent: null,
+      detailResource: null,
+    });
+    this._lastSlotValue = null;
+  }
+
   // -- Event handlers --
   _handleSlotClick(date, startTime, endTime, resourceId, resource) {
     this._lastSlotValue = { date, startTime, endTime, resourceId, resource };
@@ -405,7 +432,7 @@ export class CalScheduler extends CalendarBase {
     const currentView = state.view;
     const anchorDate = state.anchorDate;
     const weekDates = getWeekDates(anchorDate, this.firstDay);
-    const title = getViewTitle(currentView, anchorDate, weekDates);
+    const title = getViewTitle(currentView, anchorDate, weekDates, this.locale);
     const resourceMode = this.resourceMode;
 
     // Navigation
@@ -416,6 +443,7 @@ export class CalScheduler extends CalendarBase {
       onNext: () => this.next(),
       onToday: () => this.today(),
       onViewChange: (v) => this._handleViewChange(v),
+      locale: this.locale,
     }));
 
     // Ensure at least one resource

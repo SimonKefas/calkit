@@ -2,9 +2,8 @@
  * Scheduler utility functions — week computation, overlap resolution, time/pixel math.
  */
 
-import { parseDate, toDateString, addDays, today } from './dates.js';
+import { parseDate, toDateString, addDays, today, getMonthNames } from './dates.js';
 import { timeToMinutes, minutesToTime } from './times.js';
-import { MONTH_NAMES } from './dates.js';
 
 /**
  * Get the start of the week containing dateStr.
@@ -41,14 +40,16 @@ export function getWeekDates(dateStr, firstDay = 0) {
  * @param {'day'|'week'|'month'} view
  * @param {string} anchorDate - ISO date
  * @param {string[]} weekDates - for week view
+ * @param {string} [locale] - BCP 47 locale tag
  * @returns {string}
  */
-export function getViewTitle(view, anchorDate, weekDates) {
+export function getViewTitle(view, anchorDate, weekDates, locale) {
   const d = parseDate(anchorDate);
   if (!d) return '';
+  const months = getMonthNames(locale);
 
   if (view === 'day') {
-    return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
   }
 
   if (view === 'week' && weekDates && weekDates.length === 7) {
@@ -56,16 +57,16 @@ export function getViewTitle(view, anchorDate, weekDates) {
     const last = parseDate(weekDates[6]);
     if (!first || !last) return '';
     if (first.getMonth() === last.getMonth()) {
-      return `${MONTH_NAMES[first.getMonth()]} ${first.getDate()}\u2013${last.getDate()}, ${first.getFullYear()}`;
+      return `${months[first.getMonth()]} ${first.getDate()}\u2013${last.getDate()}, ${first.getFullYear()}`;
     }
     if (first.getFullYear() === last.getFullYear()) {
-      return `${MONTH_NAMES[first.getMonth()].slice(0, 3)} ${first.getDate()} \u2013 ${MONTH_NAMES[last.getMonth()].slice(0, 3)} ${last.getDate()}, ${first.getFullYear()}`;
+      return `${months[first.getMonth()].slice(0, 3)} ${first.getDate()} \u2013 ${months[last.getMonth()].slice(0, 3)} ${last.getDate()}, ${first.getFullYear()}`;
     }
-    return `${MONTH_NAMES[first.getMonth()].slice(0, 3)} ${first.getDate()}, ${first.getFullYear()} \u2013 ${MONTH_NAMES[last.getMonth()].slice(0, 3)} ${last.getDate()}, ${last.getFullYear()}`;
+    return `${months[first.getMonth()].slice(0, 3)} ${first.getDate()}, ${first.getFullYear()} \u2013 ${months[last.getMonth()].slice(0, 3)} ${last.getDate()}, ${last.getFullYear()}`;
   }
 
   if (view === 'month') {
-    return `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+    return `${months[d.getMonth()]} ${d.getFullYear()}`;
   }
 
   return '';

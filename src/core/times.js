@@ -57,6 +57,7 @@ export function minutesToTime(n) {
 
 /**
  * Generate time slots between start and end times.
+ * Supports wrapping past midnight (e.g. start="22:00", end="02:00").
  * @param {string} startTime - e.g. "09:00"
  * @param {string} endTime - e.g. "17:00"
  * @param {number} intervalMinutes - e.g. 30
@@ -65,15 +66,18 @@ export function minutesToTime(n) {
 export function generateSlots(startTime, endTime, intervalMinutes) {
   const slots = [];
   const startMin = timeToMinutes(startTime);
-  const endMin = timeToMinutes(endTime);
+  let endMin = timeToMinutes(endTime);
+  // Wrap past midnight
+  if (endMin <= startMin) endMin += 1440;
   for (let m = startMin; m <= endMin; m += intervalMinutes) {
-    slots.push(minutesToTime(m));
+    slots.push(minutesToTime(m % 1440));
   }
   return slots;
 }
 
 /**
  * Generate time slots with duration labels (e.g. "09:00–09:30").
+ * Supports wrapping past midnight.
  * @param {string} startTime - e.g. "09:00"
  * @param {string} endTime - e.g. "17:00"
  * @param {number} intervalMinutes - e.g. 30
@@ -83,11 +87,13 @@ export function generateSlots(startTime, endTime, intervalMinutes) {
 export function generateDurationSlots(startTime, endTime, intervalMinutes, format = '24h') {
   const slots = [];
   const startMin = timeToMinutes(startTime);
-  const endMin = timeToMinutes(endTime);
+  let endMin = timeToMinutes(endTime);
+  // Wrap past midnight
+  if (endMin <= startMin) endMin += 1440;
   for (let m = startMin; m <= endMin; m += intervalMinutes) {
-    const time = minutesToTime(m);
+    const time = minutesToTime(m % 1440);
     const nextMin = m + intervalMinutes;
-    const endSlotTime = minutesToTime(Math.min(nextMin, endMin + intervalMinutes));
+    const endSlotTime = minutesToTime(Math.min(nextMin, endMin + intervalMinutes) % 1440);
     const parsed = parseTime(time);
     const parsedEnd = parseTime(endSlotTime);
     const fromText = parsed ? formatTime(parsed.hours, parsed.minutes, format) : time;
@@ -104,6 +110,7 @@ export function isTimeBefore(a, b) {
 
 /**
  * Check if two time ranges overlap (exclusive boundaries).
+ * Supports wrapping past midnight for either range.
  * @param {string} startA - "HH:MM"
  * @param {string} endA - "HH:MM"
  * @param {string} startB - "HH:MM"
@@ -111,10 +118,12 @@ export function isTimeBefore(a, b) {
  * @returns {boolean}
  */
 export function timeRangesOverlap(startA, endA, startB, endB) {
-  const a0 = timeToMinutes(startA);
-  const a1 = timeToMinutes(endA);
-  const b0 = timeToMinutes(startB);
-  const b1 = timeToMinutes(endB);
+  let a0 = timeToMinutes(startA);
+  let a1 = timeToMinutes(endA);
+  let b0 = timeToMinutes(startB);
+  let b1 = timeToMinutes(endB);
+  if (a1 <= a0) a1 += 1440;
+  if (b1 <= b0) b1 += 1440;
   return a0 < b1 && a1 > b0;
 }
 
@@ -127,12 +136,18 @@ export function currentTime() {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-/** Returns true if time is within [start, end] inclusive. */
+/**
+ * Returns true if time is within [start, end] inclusive.
+ * Supports wrapping past midnight (e.g. start=22:00, end=02:00).
+ */
 export function isTimeInRange(time, start, end) {
   const t = timeToMinutes(time);
   const s = timeToMinutes(start);
   const e = timeToMinutes(end);
-  const lo = Math.min(s, e);
-  const hi = Math.max(s, e);
-  return t >= lo && t <= hi;
+  if (e >= s) {
+    // Normal range
+    return t >= s && t <= e;
+  }
+  // Wrapped range: e.g. 22:00–02:00
+  return t >= s || t <= e;
 }

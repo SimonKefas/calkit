@@ -1,9 +1,5 @@
 import { chevronLeft, chevronRight } from './navigation.js';
-
-const SHORT_MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
+import { getShortMonthNames } from '../../core/dates.js';
 
 /**
  * Renders a month/year quick-select picker (3×4 month grid with year arrows).
@@ -15,11 +11,12 @@ const SHORT_MONTHS = [
  * @param {function} options.onYearPrev - Go to previous year
  * @param {function} options.onYearNext - Go to next year
  * @param {function} options.onClose - Close the picker
+ * @param {string} [options.locale] - BCP 47 locale tag
  * @returns {HTMLElement}
  */
 export function renderMonthYearPicker({
   pickerYear, viewMonth, viewYear,
-  onMonthSelect, onYearPrev, onYearNext, onClose,
+  onMonthSelect, onYearPrev, onYearNext, onClose, locale,
 }) {
   const wrapper = document.createElement('div');
   wrapper.classList.add('cal-myp', 'cal-animate-fade');
@@ -53,6 +50,7 @@ export function renderMonthYearPicker({
   const grid = document.createElement('div');
   grid.classList.add('cal-myp__grid');
 
+  const shortMonths = getShortMonthNames(locale);
   const now = new Date();
   const todayMonth = now.getMonth();
   const todayYear = now.getFullYear();
@@ -60,7 +58,7 @@ export function renderMonthYearPicker({
   for (let m = 0; m < 12; m++) {
     const cell = document.createElement('button');
     cell.classList.add('cal-myp__cell');
-    cell.textContent = SHORT_MONTHS[m];
+    cell.textContent = shortMonths[m];
 
     // Currently viewed month
     if (m === viewMonth && pickerYear === viewYear) {

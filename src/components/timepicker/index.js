@@ -39,7 +39,7 @@ export class CalTimepicker extends CalendarBase {
   }
 
   static get observedAttributes() {
-    return ['mode', 'display', 'theme', 'start-time', 'end-time', 'interval', 'format', 'placeholder', 'value', 'duration-labels', 'loading'];
+    return ['mode', 'display', 'theme', 'start-time', 'end-time', 'interval', 'format', 'placeholder', 'value', 'duration-labels', 'loading', 'locale', 'min-time'];
   }
 
   constructor() {
@@ -73,6 +73,8 @@ export class CalTimepicker extends CalendarBase {
   get durationLabels() { return this.hasAttribute('duration-labels'); }
   get loading() { return this.hasAttribute('loading'); }
   set loading(val) { val ? this.setAttribute('loading', '') : this.removeAttribute('loading'); }
+  get locale() { return this.getAttribute('locale') || undefined; }
+  get minTime() { return this.getAttribute('min-time') || null; }
 
   // -- Properties --
   get slots() { return this._slots; }
@@ -105,21 +107,37 @@ export class CalTimepicker extends CalendarBase {
   }
 
   _getEffectiveSlots() {
+    let slots;
     // Priority 1: explicit slots property
-    if (this._slots) return this._slots;
-    // Priority 2: auto-generate from attributes
-    if (this.durationLabels) {
+    if (this._slots) {
+      slots = this._slots;
+    } else if (this.durationLabels) {
+      // Priority 2: auto-generate from attributes
       const durationSlots = generateDurationSlots(this.startTime, this.endTime, this.interval, this.format);
-      return durationSlots.map((slot) => ({
+      slots = durationSlots.map((slot) => ({
         ...slot,
         available: !this._unavailableTimes.includes(slot.time),
       }));
+    } else {
+      const times = generateSlots(this.startTime, this.endTime, this.interval);
+      slots = times.map((time) => ({
+        time,
+        available: !this._unavailableTimes.includes(time),
+      }));
     }
-    const times = generateSlots(this.startTime, this.endTime, this.interval);
-    return times.map((time) => ({
-      time,
-      available: !this._unavailableTimes.includes(time),
-    }));
+    // Apply min-time constraint
+    const mt = this.minTime;
+    if (mt) {
+      const minMin = timeToMinutes(mt);
+      slots = slots.map((slot) => {
+        const slotTime = typeof slot === 'string' ? slot : slot.time;
+        if (timeToMinutes(slotTime) < minMin) {
+          return typeof slot === 'string' ? { time: slot, available: false } : { ...slot, available: false };
+        }
+        return slot;
+      });
+    }
+    return slots;
   }
 
   connectedCallback() {
@@ -253,6 +271,15 @@ export class CalTimepicker extends CalendarBase {
       this._store.set({ isOpen: false });
       this.emit('cal:close');
     }
+  }
+
+  clear() {
+    this._store.set({
+      selected: null,
+      rangeStart: null,
+      hoverTime: null,
+    });
+    this.emit('cal:time-change', { value: null });
   }
 
   // -- Render --

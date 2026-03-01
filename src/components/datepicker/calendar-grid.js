@@ -24,6 +24,7 @@ import { resolveCellData, isHoverRangeInvalid } from '../booking/booking-data.js
  * @param {Object|null} options.dayData - map of dateStr → { label, status }
  * @param {Function|null} options.labelFormula - (dateStr) => { label, status }
  * @param {boolean} options.showLabelsOnHover - show booking labels as tooltips
+ * @param {string} [options.locale] - BCP 47 locale tag
  * @returns {HTMLElement}
  */
 export function renderCalendarGrid(options) {
@@ -36,6 +37,8 @@ export function renderCalendarGrid(options) {
     // Booking-specific params
     bookings = null, dayData = null, labelFormula = null,
     showLabelsOnHover = false,
+    locale,
+    customColors = null,
   } = options;
 
   const isBookingMode = bookings !== null;
@@ -48,7 +51,7 @@ export function renderCalendarGrid(options) {
   const headerRow = document.createElement('div');
   headerRow.setAttribute('role', 'row');
   headerRow.classList.add('cal-weekdays');
-  for (const label of getWeekdayLabels(firstDay)) {
+  for (const label of getWeekdayLabels(firstDay, locale)) {
     const cell = document.createElement('div');
     cell.setAttribute('role', 'columnheader');
     cell.setAttribute('aria-label', label);
@@ -107,7 +110,7 @@ export function renderCalendarGrid(options) {
     let bookingDisabled = false;
 
     if (isBookingMode) {
-      cellData = resolveCellData(dateStr, bookings, dayData || {}, labelFormula);
+      cellData = resolveCellData(dateStr, bookings, dayData || {}, labelFormula, customColors);
       const { status, label, halfDay, colorOut, colorIn, colorFull } = cellData;
 
       if (status === 'booked') {
