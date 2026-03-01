@@ -1,6 +1,6 @@
 {
   "name": "calkit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Vanilla JS web component library for date pickers, time pickers, booking calendars, and resource schedulers.",
   "type": "module",
   "main": "dist/calkit.umd.js",
